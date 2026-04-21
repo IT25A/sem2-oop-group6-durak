@@ -1,31 +1,36 @@
 openapi: 3.0.3
 info:
-  title: Template Service API
-  description: API for the template service
+  title: Durak Game API
+  description: API for managing Durak card games
   version: 1.0.0
 servers:
   - url: http://localhost:8080
     description: Local development server
+tags:
+  - name: Game
+    description: Manage game lifecycle (create, read).
+  - name: GameAction
+    description: In-game actions performed by players during a bout.
 paths:
-  /trains:
+  /games:
     post:
-      summary: Create a new train
-      operationId: createTrain
+      summary: Start a new game
+      operationId: startGame
       tags:
-        - TrainWrite
+        - Game
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateTrainRequest'
+              $ref: '#/components/schemas/StartGameRequest'
       responses:
         '201':
-          description: Train created successfully
+          description: Game started successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TrainCreatedResponse'
+                $ref: '#/components/schemas/GameCreatedResponse'
         '400':
           description: Bad request
           content:
@@ -38,40 +43,81 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /trains/{trainId}:
-    post:
-      summary: Update an existing train
-      operationId: updateTrain
+  /games/{gameId}:
+    get:
+      summary: Get the current game state
+      operationId: getGame
       tags:
-        - TrainWrite
+        - Game
       parameters:
-        - name: trainId
+        - name: gameId
           in: path
           required: true
           schema:
             type: string
-          description: The unique identifier of the train to update
+          description: The unique identifier of the game
+      responses:
+        '200':
+          description: Game state retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameState'
+        '404':
+          description: Game not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /games/{gameId}/attacks:
+    post:
+      summary: Play an attacking card
+      description: >
+        The current attacker places a card on the table to start or continue an attack.
+        Additional cards may be added if their rank matches a card already on the table.
+      operationId: attack
+      tags:
+        - GameAction
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The unique identifier of the game
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateTrainRequest'
+              $ref: '#/components/schemas/AttackRequest'
       responses:
         '200':
-          description: Train updated successfully
+          description: Attack played successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TrainResponse'
+                $ref: '#/components/schemas/GameState'
         '400':
-          description: Bad request
+          description: Invalid attack (e.g. wrong player, card not in hand, rank not on table)
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
-          description: Train not found
+          description: Game not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Action not allowed in current game state
           content:
             application/json:
               schema:
@@ -82,27 +128,155 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-    get:
-      summary: Get train by ID
-      operationId: getTrain
+  /games/{gameId}/defenses:
+    post:
+      summary: Defend against an attacking card
+      description: The defender covers one attacking card with a higher card of the same suit or any trump card.
+      operationId: defend
       tags:
-        - TrainRead
+        - GameAction
       parameters:
-        - name: trainId
+        - name: gameId
           in: path
           required: true
           schema:
             type: string
-          description: The unique identifier of the train
+          description: The unique identifier of the game
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DefendRequest'
       responses:
         '200':
-          description: Train retrieved successfully
+          description: Defense played successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TrainResponse'
+                $ref: '#/components/schemas/GameState'
+        '400':
+          description: Invalid defense (e.g. wrong player, card cannot beat attack card)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '404':
-          description: Train not found
+          description: Game not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Action not allowed in current game state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /games/{gameId}/supplies:
+    post:
+      summary: Supply an additional attacking card
+      description: >
+        The attacker (or other non-defending players) adds another card to the attack.
+        The card's rank must match a rank already on the table.
+        The defender must have enough cards remaining to cover all attacks.
+      operationId: supply
+      tags:
+        - GameAction
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The unique identifier of the game
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupplyRequest'
+      responses:
+        '200':
+          description: Supply card played successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameState'
+        '400':
+          description: Invalid supply (e.g. rank not on table, defender has too few cards)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Game not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Action not allowed in current game state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /games/{gameId}/passes:
+    post:
+      summary: Pass on supplying
+      description: >
+        A non-defending player declares they will not supply any more cards in this bout.
+        Once all non-defending players have passed, the bout ends successfully and cards are discarded.
+        A pass is reset for all players if any player supplies a card afterwards.
+      operationId: pass
+      tags:
+        - GameAction
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The unique identifier of the game
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PassRequest'
+      responses:
+        '200':
+          description: Pass recorded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameState'
+        '400':
+          description: Invalid pass (e.g. player is the defender, or player already passed)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Game not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Action not allowed in current game state
           content:
             application/json:
               schema:
@@ -115,66 +289,176 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
 components:
   schemas:
-    CreateTrainRequest:
+    Suit:
+      type: string
+      description: >
+        The suit of a card.
+        Possible values: HEARTS, DIAMONDS, CLUBS, SPADES.
+    Rank:
+      type: string
+      description: >
+        The rank of a card (Durak uses a 36-card deck from Six to Ace).
+        Possible values: SIX, SEVEN, EIGHT, NINE, TEN, JACK, QUEEN, KING, ACE.
+    Card:
       type: object
       required:
-        - trainNumber
-        - maxSpeed
-        - name
+        - suit
+        - rank
       properties:
-        trainNumber:
-          type: integer
-          description: The train number
-        maxSpeed:
-          type: integer
-          description: The maximum speed of the train in km/h
-        name:
-          type: string
-          description: The name of the train
-    TrainCreatedResponse:
+        suit:
+          $ref: '#/components/schemas/Suit'
+        rank:
+          $ref: '#/components/schemas/Rank'
+    PlayerHand:
       type: object
       required:
-        - id
+        - playerId
+        - cards
       properties:
-        id:
+        playerId:
           type: string
-          description: The unique identifier of the created train
-    UpdateTrainRequest:
+          description: The unique identifier of the player
+        cards:
+          type: array
+          description: The cards currently held by the player
+          items:
+            $ref: '#/components/schemas/Card'
+    AttackStack:
+      type: object
+      description: >
+        A stack of up to two cards representing one attack slot.
+        Contains the attacking card and an optional defense card.
+      required:
+        - attackCard
+      properties:
+        attackCard:
+          $ref: '#/components/schemas/Card'
+        defenseCard:
+          $ref: '#/components/schemas/Card'
+          nullable: true
+    GameStatus:
+      type: string
+      description: The current status of the game
+      enum:
+        - IN_PROGRESS
+        - FINISHED
+    GameState:
       type: object
       required:
-        - trainNumber
-        - maxSpeed
-        - name
+        - gameId
+        - status
+        - deck
+        - trumpSuit
+        - currentAttackerId
+        - currentDefenderId
+        - playerHands
+        - table
+        - supplyPasses
       properties:
-        trainNumber:
-          type: integer
-          description: The train number
-        maxSpeed:
-          type: integer
-          description: The maximum speed of the train in km/h
-        name:
+        gameId:
           type: string
-          description: The name of the train
-    TrainResponse:
+          description: The unique identifier of the game
+        status:
+          $ref: '#/components/schemas/GameStatus'
+        deck:
+          type: array
+          description: Cards remaining in the draw pile
+          items:
+            $ref: '#/components/schemas/Card'
+        trumpSuit:
+          $ref: '#/components/schemas/Suit'
+        currentAttackerId:
+          type: string
+          description: The player ID of the current attacker
+        currentDefenderId:
+          type: string
+          description: The player ID of the current defender
+        playerHands:
+          type: array
+          description: All players with their current hand
+          items:
+            $ref: '#/components/schemas/PlayerHand'
+        table:
+          type: array
+          description: Cards currently on the table (attack/defense pairs)
+          items:
+            $ref: '#/components/schemas/AttackStack'
+        supplyPasses:
+          type: array
+          description: >
+            Player IDs of non-defending players who have passed on supplying in the current bout.
+            Reset whenever a supply card is played.
+            When all non-defending players appear here, the bout ends.
+          items:
+            type: string
+    StartGameRequest:
       type: object
       required:
-        - id
-        - trainNumber
-        - maxSpeed
-        - name
+        - playerIds
       properties:
-        id:
+        playerIds:
+          type: array
+          description: >
+            Ordered list of player IDs joining the game.
+            Must contain between 2 and 6 players.
+          minItems: 2
+          maxItems: 6
+          items:
+            type: string
+    GameCreatedResponse:
+      type: object
+      required:
+        - gameId
+      properties:
+        gameId:
           type: string
-          description: The unique identifier of the train
-        trainNumber:
-          type: integer
-          description: The train number
-        maxSpeed:
-          type: integer
-          description: The maximum speed of the train in km/h
-        name:
+          description: The unique identifier of the created game
+    AttackRequest:
+      type: object
+      required:
+        - playerId
+        - card
+      properties:
+        playerId:
           type: string
-          description: The name of the train
+          description: The ID of the attacking player
+        card:
+          $ref: '#/components/schemas/Card'
+    DefendRequest:
+      type: object
+      required:
+        - playerId
+        - attackCard
+        - defenseCard
+      properties:
+        playerId:
+          type: string
+          description: The ID of the defending player
+        attackCard:
+          $ref: '#/components/schemas/Card'
+          description: The attacking card on the table to cover
+        defenseCard:
+          $ref: '#/components/schemas/Card'
+          description: The card from the defender's hand used to cover the attack card
+    SupplyRequest:
+      type: object
+      required:
+        - playerId
+        - card
+      properties:
+        playerId:
+          type: string
+          description: The ID of the player supplying an additional attack card
+        card:
+          $ref: '#/components/schemas/Card'
+    PassRequest:
+      type: object
+      required:
+        - playerId
+      properties:
+        playerId:
+          type: string
+          description: The ID of the non-defending player who passes on supplying
     ErrorResponse:
       type: object
       required:
