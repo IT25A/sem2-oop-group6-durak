@@ -19,7 +19,16 @@ fun main(args: Array<String>) {
 	val appConfig = ConfigLoader.load()
 	val persistence = buildPersistence(appConfig)
 	ExampleBaseCommand()
-		.subcommands()
+		.subcommands(
+			StartGameCommand(),
+			OnGameIdCommand().subcommands(
+				GetGameCommand(),
+				AttackCommand(),
+				DefendCommand(),
+				SupplyCommand(),
+				PassCommand(),
+			),
+		)
 		.main(args)
 }
 
