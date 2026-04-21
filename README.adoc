@@ -76,6 +76,79 @@ just
 | `just discard-db` | PostgreSQL-Datenbank stoppen und alle Daten löschen
 |===
 
+== Arbeiten mit dem Template-Repository (Upstream)
+
+Dieses Projekt ist ein Fork des Template-Repositories.
+Das Template bleibt als `upstream` eingebunden, damit Aktualisierungen daraus übernommen werden können.
+Die eigene Fork bei GitHub ist `origin`.
+
+=== Schritt 1: Fork erstellen
+
+Öffne das Template-Repository auf GitHub und klicke auf *Fork*. Damit entsteht eine eigene Kopie unter deinem GitHub-Account.
+
+=== Schritt 2: Fork klonen
+
+[source,bash]
+----
+git clone https://github.com/DEIN_USER/TEMPLATE_FORK_REPO.git
+cd DEIN_REPO
+----
+
+Nach dem Klonen ist deine Fork automatisch als `origin` eingetragen.
+
+=== Schritt 3: Template als Upstream hinzufügen
+
+[source,bash]
+----
+git remote add upstream https://github.com/stefreschke/hwr-oop-project-template.git
+----
+
+=== Remotes prüfen
+
+[source,bash]
+----
+git remote -v
+----
+
+Erwartete Ausgabe:
+....
+origin      https://github.com/DEIN_USER/TEMPLATE_FORK_REPO.git (fetch)
+origin      https://github.com/DEIN_USER/TEMPLATE_FORK_REPO.git (push)
+upstream    https://github.com/stefreschke/hwr-oop-project-template.git (fetch)
+upstream    https://github.com/stefreschke/hwr-oop-project-template.git (push)
+....
+
+=== Änderungen aus dem Template übernehmen
+
+Wenn das Template aktualisiert wurde, kannst du die Änderungen wie folgt in deine Fork übernehmen:
+
+[source,bash]
+----
+# Neueste Änderungen vom Template holen
+git fetch upstream
+
+# Template-Änderungen in deinen main-Branch mergen
+git merge upstream/main
+----
+
+Bei Konflikten müssen diese manuell aufgelöst und dann committed werden:
+
+[source,bash]
+----
+# Konflikte beheben, dann:
+git add .
+git commit -m "chore: merge upstream changes"
+git push
+----
+
+[NOTE]
+====
+Alternativ zu `git merge` kann auch `git rebase upstream/main` verwendet werden.
+Rebase ist idiomatischer, da es eine lineare Commit-History erzeugt – in der Praxis ist es jedoch etwas aufwendiger zu handhaben, vor allem bei Konflikten.
+Für dieses Projekt empfehlen wir daher, auf dem eigenen Fork einfach zu mergen.
+====
+
+
 == Docker und PostgreSQL
 
 === Docker installieren
