@@ -3,15 +3,10 @@ package hwr.oop.examples.template.core
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
-class ExampleTest {
-	
+class DeckTest {
 	@Test
-	fun `example hello world`() {
-		// given
-		val example = Example()
-		// when
-		val result = example.sayHelloTo("World")
-		// then
-		assertThat(result).startsWith("Hello").endsWith("!").contains("World")
+	fun `deck has 36 cards after init`() {
+		val deck = Deck()
+		assertThat { 36 == deck.remaining() }
 	}
 }

@@ -17,17 +17,19 @@ data class Card(val suit: Suit, val rank: Rank){
 
 class Player(val name: String, val hand: MutableList<Card> = mutableListOf()) {
 	fun draw(deck: Deck) {
-		val drawn_card = deck.draw()
-		if (drawn_card != null) {
-			hand.add(drawn_card)
+		val drawnCard = deck.draw()
+		if (drawnCard != null) {
+			hand.add(drawnCard)
 		} else {
 			println("Drawn card not found")
 		}
 	}
 	fun printHand() {
+		println("---${name}---")
 		for (card in hand) {
 			println("$card")
 		}
+		println("------")
 	}
 }
 
@@ -79,8 +81,8 @@ fun main() {
 		player.draw(deck)
 		player2.draw(deck)
 	}
-	println(player.printHand())
-	println(player2.printHand())
+	player.printHand()
+	player2.printHand()
 	println("Cards remaining: ${deck.remaining()}")
 	deck.printDeck()
 }
