@@ -26,11 +26,29 @@ class Player(val name: String, val hand: MutableList<Card> = mutableListOf()) {
 	}
 	fun printHand() {
 		println("---${name}---")
+		var i = 1
 		for (card in hand) {
-			println("$card")
+			println("[$i] $card")
+			i++
 		}
 		println("------")
 	}
+}
+
+class Table {
+	val attackDeck: MutableList<Card> = mutableListOf()
+	val defenceDeck: MutableList<Card> = mutableListOf()
+	fun attack(card: Card) {
+		attackDeck.add(card)
+	}
+	fun defence(card: Card) {
+		defenceDeck.add(card)
+	}
+}
+
+
+class Graveyard {
+
 }
 
 class Deck {
@@ -74,6 +92,8 @@ fun main() {
 	val deck = Deck()
 	val player = Player("Bob")
 	val player2 = Player("Alice")
+	val table = Table()
+	var playerInput : Int
 	println("Trump card: ${deck.peekTrump()}") // Show trump card
 	println("Cards remaining: ${deck.remaining()}")
 
@@ -84,5 +104,17 @@ fun main() {
 	player.printHand()
 	player2.printHand()
 	println("Cards remaining: ${deck.remaining()}")
-	deck.printDeck()
+	println("Player 1, which card do you want to play?: ")
+	playerInput = readln().toInt()-1
+	table.attack(player.hand[playerInput])
+	player.hand.removeAt(playerInput)
+	player.printHand()
+	println(table.attackDeck)
+	println("Player 2, which card do you want to play?: ")
+	playerInput = readln().toInt()-1
+	table.defence(player2.hand[playerInput])
+	player2.hand.removeAt(playerInput)
+	player2.printHand()
+	println(table.defenceDeck)
+	//deck.printDeck()
 }
