@@ -15,7 +15,7 @@ data class Card(val suit: Suit, val rank: Rank){
 	}
 }
 
-class Player(val name: String, val hand: MutableList<Card> = mutableListOf()) {
+class Player(val name: String = "", val hand: MutableList<Card> = mutableListOf()) {
 	fun draw(deck: Deck) {
 		val drawnCard = deck.draw()
 		if (drawnCard != null) {
@@ -45,7 +45,6 @@ class Table {
 		defenceDeck.add(card)
 	}
 }
-
 
 class Graveyard {
 
@@ -88,33 +87,45 @@ class Deck {
 
 	fun getCards(): List<Card> = cards.toList()
 }
-fun main() {
+
+class Game(val playerNames: List<String> = listOf("Bob", "Alice")) {
 	val deck = Deck()
-	val player = Player("Bob")
-	val player2 = Player("Alice")
+	val players = playerNames.map { name -> Player(name) }
+
+	init {
+		for (player in players) {
+			repeat(6){
+				player.draw(deck)
+			}
+		}
+	}
+}
+
+fun main() {
+	val game = Game()
 	val table = Table()
 	var playerInput : Int
-	println("Trump card: ${deck.peekTrump()}") // Show trump card
-	println("Cards remaining: ${deck.remaining()}")
+	println("Trump card: ${game.deck.peekTrump()}")
 
-	repeat(6) {
-		player.draw(deck)
-		player2.draw(deck)
+	for (player in game.players) {
+		player.printHand()
 	}
-	player.printHand()
-	player2.printHand()
-	println("Cards remaining: ${deck.remaining()}")
-	println("Player 1, which card do you want to play?: ")
-	playerInput = readln().toInt()-1
-	table.attack(player.hand[playerInput])
-	player.hand.removeAt(playerInput)
-	player.printHand()
-	println(table.attackDeck)
-	println("Player 2, which card do you want to play?: ")
-	playerInput = readln().toInt()-1
-	table.defence(player2.hand[playerInput])
-	player2.hand.removeAt(playerInput)
-	player2.printHand()
-	println(table.defenceDeck)
-	//deck.printDeck()
+	println("Cards remaining: ${game.deck.remaining()}")
+	game.deck.printDeck()
+
+//	player.printHand()
+//	player2.printHand()
+//	println("Cards remaining: ${deck.remaining()}")
+//	println("Player 1, which card do you want to play?: ")
+//	playerInput = readln().toInt()-1
+//	table.attack(player.hand[playerInput])
+//	player.hand.removeAt(playerInput)
+//	player.printHand()
+//	println(table.attackDeck)
+//	println("Player 2, which card do you want to play?: ")
+//	playerInput = readln().toInt()-1
+//	table.defence(player2.hand[playerInput])
+//	player2.hand.removeAt(playerInput)
+//	player2.printHand()
+//	println(table.defenceDeck)
 }
