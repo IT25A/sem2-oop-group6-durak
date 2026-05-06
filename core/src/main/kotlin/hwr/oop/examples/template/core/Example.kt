@@ -35,14 +35,14 @@ class Player(val name: String = "", val hand: MutableList<Card> = mutableListOf(
 	}
 }
 
-class Table {
+class Bout {
 	val attackDeck: MutableList<Card> = mutableListOf()
-	val defenceDeck: MutableList<Card> = mutableListOf()
+	val defenseDeck: MutableList<Card> = mutableListOf()
 	fun attack(card: Card) {
 		attackDeck.add(card)
 	}
-	fun defence(card: Card) {
-		defenceDeck.add(card)
+	fun defense(card: Card) {
+		defenseDeck.add(card)
 	}
 }
 
@@ -83,15 +83,69 @@ class Deck {
 
 	fun remaining(): Int = cards.size
 
-	fun peekTrump(): Card? = cards.lastOrNull()
+	fun peekTrump(): Card = cards.last()
 
 	fun getCards(): List<Card> = cards.toList()
 }
 
 class Game(val playerNames: List<String> = listOf("Bob", "Alice")) {
 	val deck = Deck()
+	val trump = deck.peekTrump().suit;
+	val bout = Bout()
 	val players = playerNames.map { name -> Player(name) }
+	var attackingPlayer = players[0];
+	var defendingPlayer = players[1];
 
+	fun attackPhase(isFirstTurn: Boolean): Boolean {
+		var validInput = false
+
+		while (!validInput) {
+			attackingPlayer.printHand()
+			var input = readln().toInt()-1
+			if (input < 1 || input >= attackingPlayer.hand.size-1) {
+				println("Invalid Number! (outside of range)")
+			}
+			else {
+				var card = attackingPlayer.hand[input]
+
+				if (isFirstTurn) {
+					validInput = true
+				}
+				else if (bout.attackDeck.any { it.rank == (card.rank) } || bout.defenseDeck.any { it.rank == (card.rank)}) {
+					validInput = true
+				} else {
+					println("${card.rank} has not been played this bout")
+				}
+			}
+		}
+		//TODO add card to bout or end turn!
+		return true
+	}
+	fun defendPhase(isFirstTurn: Boolean): Boolean {
+		var validInput = false
+		val attackCard = bout.attackDeck.last()
+		while (!validInput) {
+			defendingPlayer.printHand()
+			var input = readln().toInt()-1
+			if (input < 1 || input >= defendingPlayer.hand.size-1) {
+				println("Invalid Number! (outside of range)")
+			}
+			else {
+				var defendCard = defendingPlayer.hand[input]
+				if(attackCard.suit != trump && defendCard.suit == trump) {
+					validInput = true;
+				}
+				else if (attackCard.suit == defendCard.suit && defendCard.rank > attackCard.rank){
+					validInput = true
+				}
+				else {
+					println("${defendCard.rank} is not a valid card to defend with")
+				}
+			}
+		}
+		//TODO add card to bout or end turn!
+		return true
+	}
 	init {
 		for (player in players) {
 			repeat(6){
@@ -103,7 +157,6 @@ class Game(val playerNames: List<String> = listOf("Bob", "Alice")) {
 
 fun main() {
 	val game = Game()
-	val table = Table()
 	var playerInput : Int
 	println("Trump card: ${game.deck.peekTrump()}")
 
@@ -118,14 +171,14 @@ fun main() {
 //	println("Cards remaining: ${deck.remaining()}")
 //	println("Player 1, which card do you want to play?: ")
 //	playerInput = readln().toInt()-1
-//	table.attack(player.hand[playerInput])
+//	bout.attack(player.hand[playerInput])
 //	player.hand.removeAt(playerInput)
 //	player.printHand()
-//	println(table.attackDeck)
+//	println(bout.attackDeck)
 //	println("Player 2, which card do you want to play?: ")
 //	playerInput = readln().toInt()-1
-//	table.defence(player2.hand[playerInput])
+//	bout.defense(player2.hand[playerInput])
 //	player2.hand.removeAt(playerInput)
 //	player2.printHand()
-//	println(table.defenceDeck)
+//	println(bout.defenseDeck)
 }
