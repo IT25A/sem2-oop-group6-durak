@@ -25,4 +25,10 @@ class DeckTest {
 			assertEquals(4, rankCards.size)
 		}
 	}
+	@Test
+	fun `last card of deck is trump`() {
+		val deck = Deck()
+		val expectedCard = deck.getCards().last()
+		assertEquals(deck.peekTrump(), expectedCard)
+	}
 }

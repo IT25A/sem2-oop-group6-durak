@@ -1,6 +1,6 @@
 package hwr.oop.examples.template.core
 
-class Game(playerNames: List<String> = listOf()) {
+class Game(playerNames: List<String> = listOf("Alice", "Bob")) {
     val deck = Deck()
     val trump = deck.peekTrump().suit
     val bout = Bout()
@@ -43,7 +43,6 @@ class Game(playerNames: List<String> = listOf()) {
         while (!validInput) {
             defendingPlayer.printHand()
             val input = readln().toInt() - 1
-
             if (input in hand.indices) {
                 val defendCard = hand[input]
                 val canDefend =

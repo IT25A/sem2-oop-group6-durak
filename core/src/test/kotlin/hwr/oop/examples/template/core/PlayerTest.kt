@@ -12,9 +12,21 @@ class PlayerTest {
         val deck = Deck()
         val player = Player()
         val topCard = deck.getCards().firstOrNull()
-        player.draw(deck)
+        assertThat(player.draw(deck)).isTrue()
         assertThat(player.hand.contains(topCard)).isTrue()
         assertThat(deck.getCards().contains(topCard)).isFalse()
     }
-
+    @Test
+    fun `drawing from an empty deck returns false`(){
+        val deck = Deck()
+        val player = Player()
+        for (i in deck.getCards().indices){
+            player.draw(deck)
+        }
+        assertThat(player.draw(deck)).isFalse
+    }
+    @Test
+    fun `player can print their hand`(){
+        val output = ByteArrayOutputStream()
+    }
 }
