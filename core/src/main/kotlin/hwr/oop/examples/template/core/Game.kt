@@ -1,12 +1,32 @@
 package hwr.oop.examples.template.core
 
-class Game(playerNames: List<String> = listOf("Alice", "Bob")) {
+class Game(playerNames: List<String> = listOf()) {
     val deck = Deck()
     val trump = deck.peekTrump().suit
     val bout = Bout()
     val players = playerNames.map { name -> Player(name) }
-    var attackingPlayer = players[0]
-    var defendingPlayer = players[1]
+    var attackerIndex = 0
+    var defenderIndex = 1
+    var attackingPlayer = players[attackerIndex]
+    var defendingPlayer = players[defenderIndex]
+
+    fun determineNextTurn(){
+        do {
+            attackerIndex++
+            if (attackerIndex > players.size - 1) {
+                attackerIndex = 0
+            }
+            attackingPlayer = players[attackerIndex]
+        } while(attackingPlayer.hand.isEmpty())
+        defenderIndex = attackerIndex
+        do {
+            defenderIndex++
+            if (defenderIndex > players.size - 1) {
+                defenderIndex = 0
+            }
+            defendingPlayer = players[defenderIndex]
+        } while(defendingPlayer.hand.isEmpty())
+    }
 
     fun attackPhase(isFirstTurn: Boolean): Boolean {
         var validInput = false
