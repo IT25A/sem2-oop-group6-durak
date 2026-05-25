@@ -10,22 +10,16 @@ class Game(playerNames: List<String> = listOf()) {
     var attackingPlayer = players[attackerIndex]
     var defendingPlayer = players[defenderIndex]
 
-    fun determineNextTurn(){
+    private fun getNextNonEmptyPlayerIndex(fromIndex: Int): Int {
+        var index = fromIndex
         do {
-            attackerIndex++
-            if (attackerIndex > players.size - 1) {
-                attackerIndex = 0
-            }
-            attackingPlayer = players[attackerIndex]
-        } while(attackingPlayer.hand.isEmpty())
-        defenderIndex = attackerIndex
-        do {
-            defenderIndex++
-            if (defenderIndex > players.size - 1) {
-                defenderIndex = 0
-            }
-            defendingPlayer = players[defenderIndex]
-        } while(defendingPlayer.hand.isEmpty())
+            index = (index + 1) % players.size
+        } while (players[index].hand.isEmpty())
+        return index
+    }
+    fun determineNextTurn() {
+        attackerIndex = getNextNonEmptyPlayerIndex(attackerIndex)
+        defenderIndex = getNextNonEmptyPlayerIndex(attackerIndex)
     }
 
     fun attackPhase(isFirstTurn: Boolean): Boolean {
@@ -83,6 +77,17 @@ class Game(playerNames: List<String> = listOf()) {
         bout.printBout()
         return true
     }
+
+    fun refillHands() {
+        val drawOrder = (attackerIndex until players.size) + (0 until attackerIndex)
+        for (index in drawOrder) {
+            val player = players[index]
+            while (player.hand.size < 6 && deck.getCards().isNotEmpty()) {
+                player.draw(deck)
+            }
+        }
+    }
+
     init {
         for (player in players) {
             repeat(6){
