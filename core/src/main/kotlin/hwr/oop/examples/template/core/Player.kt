@@ -1,6 +1,9 @@
 package hwr.oop.examples.template.core
 
-class Player(val name: String = "", val hand: MutableList<Card> = mutableListOf()) {
+class Player(
+    val name: String = "",
+    val hand: MutableList<Card> = mutableListOf()
+) {
     /**
      * The player draws a card from the provided Deck
      * @param deck to draw from
