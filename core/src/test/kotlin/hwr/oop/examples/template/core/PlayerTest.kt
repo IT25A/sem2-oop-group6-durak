@@ -1,10 +1,9 @@
 package hwr.oop.examples.template.core
 
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import java.io.ByteArrayOutputStream
-import java.io.PrintStream
 
 class PlayerTest {
     @Test
@@ -20,13 +19,12 @@ class PlayerTest {
     fun `drawing from an empty deck returns false`(){
         val deck = Deck()
         val player = Player()
-        for (i in deck.getCards().indices){
+        deck.getCards().forEach { _ ->
             player.draw(deck)
         }
-        assertThat(player.draw(deck)).isFalse
-    }
-    @Test
-    fun `player can print their hand`(){
-        val output = ByteArrayOutputStream()
+        val exception = assertThrows(IllegalArgumentException::class.java) {
+            player.draw(deck)
+        }
+        assertTrue(exception.message!!.contains("Drawn card not found"))
     }
 }

@@ -1,8 +1,8 @@
 package hwr.oop.examples.template.core
 
-class Graveyard {
-
-}
+//class Graveyard {
+//
+//}
 
 fun main() {
 	val game = Game(1,listOf("Bob", "Alice", "Max", "Tom", "John", "James"))

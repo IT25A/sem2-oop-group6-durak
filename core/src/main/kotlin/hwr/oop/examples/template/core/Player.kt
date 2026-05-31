@@ -13,22 +13,21 @@ class Player(
         val drawnCard = deck.draw()
         if (drawnCard != null) {
             hand.add(drawnCard)
-            return true;
+            return true
         } else {
-            println("Drawn card not found")
-            return false;
+            throw IllegalArgumentException("Drawn card not found")
         }
     }
     /**
      * prints all Cards held in hand
      * */
-    fun printHand() {
-        println("---${name}---")
-        var i = 1
-        for (card in hand) {
-            println("[$i] $card")
-            i++
-        }
-        println("------")
-    }
+//    fun printHand() {
+//        println("---${name}---")
+//        var i = 1
+//        for (card in hand) {
+//            println("[$i] $card")
+//            i++
+//        }
+//        println("------")
+//    }
 }

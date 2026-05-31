@@ -16,7 +16,7 @@ object CardFromStringConverter {
                 rankStr = "10"
                 suitChar = uppercase[2]
             }
-            uppercase.length == 2 -> {
+            uppercase.length == 2 && uppercase != "10" -> {
                 rankStr = uppercase[0].toString()
                 suitChar = uppercase[1]
             }

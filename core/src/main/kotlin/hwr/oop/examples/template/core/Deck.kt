@@ -33,11 +33,11 @@ class Deck {
     /**
      * Utility function that prints all cards to console
      */
-    fun printDeck(){
-        for (card in cards) {
-            println("$card")
-        }
-    }
+//    fun printDeck(){
+//        for (card in cards) {
+//            println("$card")
+//        }
+//    }
 
     // fun isEmpty(): Boolean = cards.isEmpty()
 

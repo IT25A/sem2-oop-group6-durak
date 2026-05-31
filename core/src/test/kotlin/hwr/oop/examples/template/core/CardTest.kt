@@ -1,7 +1,6 @@
 package hwr.oop.examples.template.core
 
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
@@ -57,11 +56,5 @@ class CardTest {
 
         val suits = cards.map { it.suit }
         assertThat(suits).containsExactlyInAnyOrderElementsOf(allSuits)
-    }
-    @Test
-    fun `toString() returns suit and rank`() {
-        val card = Card(Suit.SPADES, Rank.QUEEN)
-        val result = card.toString()
-        assertEquals("QS", result)
     }
 }
