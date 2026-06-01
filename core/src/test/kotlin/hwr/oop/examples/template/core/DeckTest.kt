@@ -13,7 +13,7 @@ class DeckTest {
 	fun `deck contains 9 of each suit`() {
 		val deck = Deck()
 		val groupedBySuit = deck.getCards().groupBy { it.suit }
-		groupedBySuit.forEach { (suit, suitCards) ->
+		groupedBySuit.forEach { (_, suitCards) ->
 			assertEquals(9, suitCards.size)
 		}
 	}
@@ -21,8 +21,14 @@ class DeckTest {
 	fun `deck contains 4 of each rank`() {
 		val deck = Deck()
 		val groupedByRank = deck.getCards().groupBy { it.rank }
-		groupedByRank.forEach { (rank, rankCards) ->
+		groupedByRank.forEach { (_, rankCards) ->
 			assertEquals(4, rankCards.size)
 		}
+	}
+	@Test
+	fun `last card of deck is trump`() {
+		val deck = Deck()
+		val expectedCard = deck.getCards().last()
+		assertEquals(deck.peekTrump(), expectedCard)
 	}
 }
