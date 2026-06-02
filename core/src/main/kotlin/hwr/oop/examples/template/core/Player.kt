@@ -18,16 +18,4 @@ class Player(
             throw IllegalArgumentException("Drawn card not found")
         }
     }
-    /**
-     * prints all Cards held in hand
-     * */
-//    fun printHand() {
-//        println("---${name}---")
-//        var i = 1
-//        for (card in hand) {
-//            println("[$i] $card")
-//            i++
-//        }
-//        println("------")
-//    }
 }

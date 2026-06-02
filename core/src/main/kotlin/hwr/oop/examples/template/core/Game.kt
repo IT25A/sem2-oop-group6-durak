@@ -8,11 +8,13 @@ class Game(
     val trump = deck.peekTrump().suit
     val bout = Bout()
     val players = playerNames.map { name -> Player(name) }
-    var attackerIndex = 0
-    var defenderIndex = 1
-    var attackingPlayer = players[attackerIndex]
-    var defendingPlayer = players[defenderIndex]
-    var gamePhase = GamePhase.attacking
+    private var attackerIndex = 0
+    private var defenderIndex = 1
+    private var attackingPlayer = players[attackerIndex]
+    private var defendingPlayer = players[defenderIndex]
+    private var gamePhase = GamePhase.ATTACKING
+    private var isGameOver = false
+    val playerWinOrder = mutableListOf<Player>()
 
     private fun getNextNonEmptyPlayerIndex(fromIndex: Int): Int {
         var index = fromIndex
@@ -28,14 +30,17 @@ class Game(
         if (attackingPlayer == passingPlayer) {
             attackerIndex = getNextNonEmptyPlayerIndex(attackerIndex)
             defenderIndex = getNextNonEmptyPlayerIndex(attackerIndex)
+            attackingPlayer = players[attackerIndex]
+            defendingPlayer = players[defenderIndex]
         }
         else {
             defenderIndex = getNextNonEmptyPlayerIndex(attackerIndex)
+            defendingPlayer = players[defenderIndex]
         }
     }
 
     fun attack(card: Card){
-        if (gamePhase != GamePhase.attacking){
+        if (gamePhase != GamePhase.ATTACKING){
             throw InvalidMoveException("Can not attack. Game $gameId is currently in $gamePhase ")
         }
         if (!attackingPlayer.hand.contains(card)){
@@ -49,10 +54,15 @@ class Game(
         }
         bout.attackDeck.add(card)
         attackingPlayer.hand.remove(card)
+        gamePhase = GamePhase.DEFENDING
+        if (attackingPlayer.hand.isEmpty() && deck.getCards().isEmpty()){
+            playerWinOrder.add(attackingPlayer)
+            determineGameOver()
+        }
     }
     fun defend(card: Card){
-        if (gamePhase != GamePhase.defending){
-            throw InvalidMoveException("Can not defend. Game $gameId is .currently in $gamePhase phase")
+        if (gamePhase != GamePhase.DEFENDING){
+            throw InvalidMoveException("Can not defend. Game $gameId is currently in $gamePhase phase")
         }
         if (!defendingPlayer.hand.contains(card)){
             throw IllegalArgumentException("Card is not part of ${attackingPlayer.name}'s hand")
@@ -66,6 +76,12 @@ class Game(
         }
         bout.defenseDeck.add(card)
         defendingPlayer.hand.remove(card)
+        gamePhase = GamePhase.ATTACKING
+        if (defendingPlayer.hand.isEmpty() && deck.getCards().isEmpty()){
+            playerWinOrder.add(defendingPlayer)
+            determineGameOver()
+            pass()
+        }
     }
 
     fun refillHands() {
@@ -79,22 +95,41 @@ class Game(
     }
     fun pass() {
         val defenderTakesCards =
-            gamePhase == GamePhase.defending && defendingPlayer.hand.isNotEmpty()
+            gamePhase == GamePhase.DEFENDING && !isBoutDefended()
 
         val passingPlayer =
             if (defenderTakesCards) {
-                defendingPlayer.hand.addAll(bout.defenseDeck)
-                defendingPlayer.hand.addAll(bout.attackDeck)
+                finishBout(false)
                 defendingPlayer
             } else {
                 attackingPlayer
             }
 
-        bout.attackDeck.clear()
-        bout.defenseDeck.clear()
+        finishBout(true)
         refillHands()
         determineNextTurn(passingPlayer)
-        gamePhase = GamePhase.attacking
+        gamePhase = GamePhase.ATTACKING
+    }
+    fun discardBoutCards() {
+        bout.attackDeck.clear()
+        bout.defenseDeck.clear()
+    }
+    fun finishBout(defenderSucceeded: Boolean) {
+        if (defenderSucceeded) {
+            discardBoutCards()
+        } else {
+            defendingPlayer.hand.addAll(bout.attackDeck)
+            defendingPlayer.hand.addAll(bout.defenseDeck)
+            discardBoutCards()
+        }
+    }
+    fun isBoutDefended(): Boolean {
+        return bout.attackDeck.size == bout.defenseDeck.size && bout.attackDeck.isNotEmpty()
+    }
+    fun determineGameOver(){
+        if (players.size - playerWinOrder.size <= 1) {
+            isGameOver = true
+        }
     }
 
     init {
@@ -105,48 +140,3 @@ class Game(
         }
     }
 }
-
-// --- Previous attack and defense phase functions ---
-/*
-fun attackPhase(selectedIndex: Int, isFirstTurn: Boolean): Boolean {
-    val hand = attackingPlayer.hand
-
-    if (selectedIndex !in hand.indices){
-        throw IndexOutOfBoundsException("Selected index $selectedIndex is out of bounds")
-    }
-
-    val card = hand[selectedIndex]
-    val canAttack = isFirstTurn ||
-            bout.attackDeck.any { it.rank == card.rank } ||
-            bout.defenseDeck.any { it.rank == card.rank }
-
-    if (!canAttack) {
-        throw IllegalArgumentException("${card.rank} has not been played this bout")
-    }
-
-    bout.attack(card)
-    hand.removeAt(selectedIndex)
-    return true
-}
-fun defensePhase(selectedIndex: Int): Boolean {
-    val attackCard = bout.attackDeck.last()
-    val hand = defendingPlayer.hand
-
-    if (selectedIndex !in hand.indices){
-        throw IndexOutOfBoundsException("Selected index $selectedIndex is out of bounds")
-    }
-
-    val card = hand[selectedIndex]
-    val canDefend =
-        (attackCard.suit != trump && card.suit == trump) ||
-        (attackCard.suit == card.suit && card.rank.rankValue > attackCard.rank.rankValue)
-
-    if (!canDefend) {
-        throw IllegalArgumentException("$card is not a valid card to defend with")
-    }
-
-    bout.defense(card)
-    hand.removeAt(selectedIndex)
-    return true
-}
-*/
