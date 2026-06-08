@@ -6,10 +6,11 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class PlayerTest {
+    val deck = Deck()
+    val player = Player()
+
     @Test
     fun `player can draw`(){
-        val deck = Deck()
-        val player = Player()
         val topCard = deck.getCards().firstOrNull()
         assertThat(player.draw(deck)).isTrue()
         assertThat(player.hand.contains(topCard)).isTrue()
@@ -17,8 +18,6 @@ class PlayerTest {
     }
     @Test
     fun `drawing from an empty deck returns false`(){
-        val deck = Deck()
-        val player = Player()
         deck.getCards().forEach { _ ->
             player.draw(deck)
         }

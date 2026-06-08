@@ -41,4 +41,8 @@ class Deck {
      * @return all cards as a List<Card>
      */
     fun getCards(): List<Card> = cards.toList()
+
+    fun clearDeckForTest() {
+        cards.clear()
+    }
 }

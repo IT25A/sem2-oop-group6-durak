@@ -5,9 +5,38 @@ This repository contains a student project created for an ongoing lecture on obj
 WARNING: This code is for educational purposes only.
 Do not rely on it!
 
-== Feature Liste
+== Feature List
 
-// TODO : Add a list of features that your project implements. This can be a simple bullet list or a tables
+* Game Setup
+** Multiplayer support
+** Shuffled deck initialization
+** Trump suit detection
+** Initial hand dealing (6 cards)
+* Core Gameplay
+** Turn-based flow
+** Attack phase
+** Defense phase
+** Bout tracking (attack/defense piles)
+* Rule Enforcement
+** Valid attack (matching ranks)
+** Valid defense (higher card / trump)
+** Move validation with exceptions
+* Turn Management
+** Dynamic turn rotation
+** Skip players without cards
+** Attacker/defender tracking
+* Round Handling
+** Pass mechanic
+** Defender picks up cards
+** Successful defense discard
+** Bout reset
+* Card Management
+** Hand refilling up to 6 cards
+** Draw order based on turn
+* Game Progression
+** Player finish detection
+** Win order tracking
+** Game end condition
 
 == Modulstruktur
 
