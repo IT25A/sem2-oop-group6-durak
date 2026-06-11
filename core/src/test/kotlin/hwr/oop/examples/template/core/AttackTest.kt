@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class AttackTest {
-    val game = Game(1, listOf("Alice", "Bob", "Charlie"))
+    val game = Game( playerNames = listOf("Alice", "Bob", "Charlie"))
     val bout = game.bout
 
     @Test

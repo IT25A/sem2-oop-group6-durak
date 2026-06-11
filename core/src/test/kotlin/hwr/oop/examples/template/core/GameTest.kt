@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class GameTest {
-    val game = Game(1, listOf("Alice", "Bob", "Charlie"))
+    val game = Game(playerNames =        listOf("Alice", "Bob", "Charlie"))
     val player = game.players[0]
 
     @Test

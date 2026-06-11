@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class DefendTest {
-    val game = Game(1, listOf("Alice", "Bob", "Charlie"), Suit.CLUBS)
+    val game = Game(playerNames = listOf("Alice", "Bob", "Charlie"), trumpOverrideForTest =  Suit.CLUBS)
     val defender = game.currentDefender()
     val trump = game.trump
     val bout = game.bout

@@ -5,7 +5,7 @@ import okio.fakefilesystem.FakeFileSystem
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 
-class FileSystemPersistenceTest {
+class 	FileSystemPersistenceTest {
 	
 	private val fakeFileSystem = FakeFileSystem()
 	private val tempDir = "/tmp/template-test".toPath()
