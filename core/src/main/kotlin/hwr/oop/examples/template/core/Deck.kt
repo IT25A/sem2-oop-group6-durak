@@ -45,4 +45,7 @@ class Deck {
     fun clearDeckForTest() {
         cards.clear()
     }
+    fun addCardToDeckForTest(card: Card) {
+        cards.add(card)
+    }
 }

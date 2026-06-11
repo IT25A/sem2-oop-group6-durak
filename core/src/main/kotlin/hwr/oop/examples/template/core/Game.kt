@@ -18,6 +18,7 @@ class Game(
 
     fun currentAttacker() = attackingPlayer
     fun currentDefender() = defendingPlayer
+    fun getGamePhaseForTest(): GamePhase = gamePhase
     fun setPhaseForTest(phase: GamePhase) {
         this.gamePhase = phase
     }
@@ -40,7 +41,9 @@ class Game(
             defendingPlayer = players[defenderIndex]
         }
         else {
+            attackerIndex = getNextNonEmptyPlayerIndex(defenderIndex)
             defenderIndex = getNextNonEmptyPlayerIndex(attackerIndex)
+            attackingPlayer = players[attackerIndex]
             defendingPlayer = players[defenderIndex]
         }
     }
@@ -127,7 +130,7 @@ class Game(
         return bout.attackDeck.size == bout.defenseDeck.size && bout.attackDeck.isNotEmpty()
     }
 
-    private fun handlePlayerFinished(player: Player, callPassIfDefender: Boolean = false) {
+    fun handlePlayerFinished(player: Player, callPassIfDefender: Boolean = false) {
         if (player.hand.isEmpty() && deck.getCards().isEmpty()) {
             playerWinOrder.add(player)
             determineGameOver()
@@ -141,6 +144,8 @@ class Game(
             gamePhase = GamePhase.FINISHED
         }
     }
+
+    // TODO fun supply(){}
 
     init {
         for (player in players) {
