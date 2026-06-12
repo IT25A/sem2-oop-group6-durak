@@ -1,8 +1,11 @@
 package hwr.oop.examples.template.core
 
+import kotlinx.serialization.Serializable
+
 /**
  * @constructor Creates a deck containing 36 unique cards **pre-shuffled**
  */
+//@Serializable
 class Deck {
     private val cards: MutableList<Card> = mutableListOf()
 

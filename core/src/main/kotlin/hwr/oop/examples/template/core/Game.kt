@@ -1,9 +1,12 @@
 package hwr.oop.examples.template.core
 
+import kotlinx.serialization.Serializable
+
+//@Serializable
 class Game(
-    val gameId: Int,
-    playerNames: List<String>,
-    trumpOverrideForTest: Suit? = null
+    val gameId: GameId = GameId.random(),
+    val playerNames: List<String>,
+    val trumpOverrideForTest: Suit? = null
 ) {
     val deck = Deck()
     val trump = trumpOverrideForTest ?: deck.peekTrump().suit
@@ -11,13 +14,11 @@ class Game(
     val players = playerNames.map { name -> Player(name) }
     private var attackerIndex = 0
     private var defenderIndex = 1
-    private var attackingPlayer = players[attackerIndex]
-    private var defendingPlayer = players[defenderIndex]
+    val attackingPlayer get() = players[attackerIndex]
+    val defendingPlayer get() = players[defenderIndex]
     private var gamePhase = GamePhase.ATTACKING
     val playerWinOrder = mutableListOf<Player>()
 
-    fun currentAttacker() = attackingPlayer
-    fun currentDefender() = defendingPlayer
     fun getGamePhaseForTest(): GamePhase = gamePhase
     fun setPhaseForTest(phase: GamePhase) {
         this.gamePhase = phase
@@ -37,14 +38,10 @@ class Game(
         if (attackingPlayer == passingPlayer) {
             attackerIndex = getNextNonEmptyPlayerIndex(attackerIndex)
             defenderIndex = getNextNonEmptyPlayerIndex(attackerIndex)
-            attackingPlayer = players[attackerIndex]
-            defendingPlayer = players[defenderIndex]
         }
         else {
             attackerIndex = getNextNonEmptyPlayerIndex(defenderIndex)
             defenderIndex = getNextNonEmptyPlayerIndex(attackerIndex)
-            attackingPlayer = players[attackerIndex]
-            defendingPlayer = players[defenderIndex]
         }
     }
 

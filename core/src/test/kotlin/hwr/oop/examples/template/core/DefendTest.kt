@@ -5,8 +5,8 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class DefendTest {
-    val game = Game(1, listOf("Alice", "Bob", "Charlie"), Suit.CLUBS)
-    val defender = game.currentDefender()
+    val game = Game(GameId.random(), listOf("Alice", "Bob", "Charlie"), Suit.CLUBS)
+    val defender = game.defendingPlayer
     val trump = game.trump
     val bout = game.bout
 
@@ -21,8 +21,8 @@ class DefendTest {
     @Test
     fun `defend() throws on invalid card`(){
         game.setPhaseForTest(GamePhase.DEFENDING)
-        game.currentDefender().hand.clear()
-        game.currentDefender().hand.add(Card(Suit.DIAMONDS, Rank.QUEEN))
+        defender.hand.clear()
+        defender.hand.add(Card(Suit.DIAMONDS, Rank.QUEEN))
         val exception = assertThrows(IllegalArgumentException::class.java){
             game.defend(Card(Suit.SPADES, Rank.QUEEN))
         }
@@ -36,7 +36,7 @@ class DefendTest {
         bout.defenseDeck.clear()
 
         val illegalCard = Card(Suit.SPADES, Rank.SIX)
-        game.currentDefender().hand.add(illegalCard)
+        defender.hand.add(illegalCard)
 
         val exception = assertThrows(IllegalArgumentException::class.java){
             game.defend(illegalCard)

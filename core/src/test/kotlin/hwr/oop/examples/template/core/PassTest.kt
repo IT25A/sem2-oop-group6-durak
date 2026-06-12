@@ -5,8 +5,7 @@ import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Test
 
 class PassTest {
-    val game = Game(1, listOf("Alice", "Bob", "Charlie"))
-    val player = game.players[0]
+    val game = Game(GameId("1"), listOf("Alice", "Bob", "Charlie"))
 
     @Test
     fun `pass next attacker is defender when defender takes cards`(){
@@ -15,7 +14,7 @@ class PassTest {
         game.bout.defenseDeck.clear()
 
         game.pass()
-        assertEquals(game.players[2], game.currentAttacker())
+        assertEquals(game.players[2], game.attackingPlayer)
     }
     @Test
     fun `pass next attacker is defender`(){
@@ -24,54 +23,54 @@ class PassTest {
         game.bout.defenseDeck.add(Card(Suit.CLUBS, Rank.QUEEN))
 
         game.pass()
-        assertEquals(game.players[1], game.currentAttacker())
+        assertEquals(game.players[1], game.attackingPlayer)
     }
     @Test
-    fun `defenderTakesCards is true when phase is DEFENDING and bout is not defended`(){
+    fun `defenderTakesCards is true when phase is DEFENDING and bout is NOT defended`(){
         game.setPhaseForTest(GamePhase.DEFENDING)
         game.bout.attackDeck.add(Card(Suit.CLUBS, Rank.QUEEN))
         game.bout.defenseDeck.clear()
 
         game.pass()
-        assertEquals(game.players[2], game.currentAttacker())
-        assertEquals(game.players[0], game.currentDefender())
+        assertEquals(game.players[2], game.attackingPlayer)
+        assertEquals(game.players[0], game.defendingPlayer)
     }
     @Test
-    fun `pass sets defenderTakesCards to false when phase is DEFENDING and bout IS defended`() {
+    fun `defenderTakesCards to false when phase is DEFENDING and bout IS defended`() {
         game.setPhaseForTest(GamePhase.DEFENDING)
         game.bout.attackDeck.add(Card(Suit.CLUBS, Rank.QUEEN))
         game.bout.defenseDeck.add(Card(Suit.DIAMONDS, Rank.KING))
 
-        val attackerBefore = game.currentAttacker()
+        val attackerBefore = game.attackingPlayer
 
         game.pass()
-        assertNotEquals(attackerBefore, game.currentAttacker())
+        assertNotEquals(attackerBefore, game.attackingPlayer)
     }
     @Test
-    fun `pass sets defenderTakesCards to false when phase is ATTACKING and bout IS NOT defended`() {
+    fun `defenderTakesCards to false when phase is ATTACKING and bout IS NOT defended`() {
         game.setPhaseForTest(GamePhase.ATTACKING)
         game.bout.attackDeck.add(Card(Suit.CLUBS, Rank.QUEEN))
         game.bout.defenseDeck.clear()
 
-        val attackerBefore = game.currentAttacker()
+        val attackerBefore = game.attackingPlayer
 
         game.pass()
-        assertNotEquals(attackerBefore, game.currentAttacker())
+        assertNotEquals(attackerBefore, game.attackingPlayer)
     }
     @Test
-    fun `pass sets defenderTakesCards to false when phase is ATTACKING and bout IS defended`() {
+    fun `defenderTakesCards to false when phase is ATTACKING and bout IS defended`() {
         game.setPhaseForTest(GamePhase.ATTACKING)
         game.bout.attackDeck.add(Card(Suit.CLUBS, Rank.QUEEN))
         game.bout.defenseDeck.add(Card(Suit.DIAMONDS, Rank.KING))
 
-        val attackerBefore = game.currentAttacker()
+        val attackerBefore = game.attackingPlayer
 
         game.pass()
-        assertNotEquals(attackerBefore, game.currentAttacker())
+        assertNotEquals(attackerBefore, game.attackingPlayer)
     }
     @Test
     fun `defender takes all bout cards when round lost`(){
-        val defender = game.currentDefender()
+        val defender = game.defendingPlayer
         defender.hand.clear()
 
         game.bout.attackDeck.add(Card(Suit.CLUBS, Rank.QUEEN))

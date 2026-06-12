@@ -1,9 +1,14 @@
 package hwr.oop.examples.template
 
+import hwr.oop.examples.template.core.Game
+import hwr.oop.examples.template.core.GameId
+import okio.FileNotFoundException
 import okio.Path.Companion.toPath
 import okio.fakefilesystem.FakeFileSystem
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 
 class FileSystemPersistenceTest {
 	
@@ -25,11 +30,18 @@ class FileSystemPersistenceTest {
 	}
 	
 	@Test
-	fun `do nothing`() {
-		// given
-		// when
-		// then
+	fun `accessing non-existent file throws exception` () {
+		val game = Game(GameId("a"), listOf("a, b"))
+		sut.save(game)
+		assertThrows<FileNotFoundException> {sut.getGame(GameId("b"))  }
 	}
-	
+
+	@Test
+	fun `verify saving and loading a Game returns the same game` (){
+		val game = Game(GameId("a"), listOf("alpha", "beta", "Gamma"))
+		sut.save(game)
+		val loadedGame = sut.getGame(game.gameId)
+		assertThat(loadedGame == game)
+	}
 }
 

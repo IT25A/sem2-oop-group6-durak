@@ -5,7 +5,8 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class AttackTest {
-    val game = Game(1, listOf("Alice", "Bob", "Charlie"))
+    val game = Game(GameId.random(), listOf("Alice", "Bob", "Charlie"))
+    val attacker = game.attackingPlayer
     val bout = game.bout
 
     @Test
@@ -18,8 +19,8 @@ class AttackTest {
     }
     @Test
     fun `attack() throws on invalid card`(){
-        game.currentAttacker().hand.clear()
-        game.currentAttacker().hand.add(Card(Suit.DIAMONDS, Rank.QUEEN))
+        attacker.hand.clear()
+        attacker.hand.add(Card(Suit.DIAMONDS, Rank.QUEEN))
         val exception = assertThrows(IllegalArgumentException::class.java){
             game.attack(Card(Suit.SPADES, Rank.QUEEN))
         }
@@ -33,7 +34,7 @@ class AttackTest {
         bout.defenseDeck.add(Card(Suit.DIAMONDS, Rank.KING))
 
         val illegalCard = Card(Suit.SPADES, Rank.SIX)
-        game.currentAttacker().hand.add(illegalCard)
+        attacker.hand.add(illegalCard)
 
         val exception = assertThrows(IllegalArgumentException::class.java){
             game.attack(illegalCard)
@@ -47,7 +48,7 @@ class AttackTest {
         game.bout.defenseDeck.clear()
 
         val attackCard = Card(Suit.HEARTS, Rank.SIX)
-        game.currentAttacker().hand.add(attackCard)
+        attacker.hand.add(attackCard)
         game.attack(attackCard)
     }
     @Test
@@ -57,7 +58,7 @@ class AttackTest {
         game.bout.defenseDeck.clear()
 
         val attackCard = Card(Suit.SPADES, Rank.QUEEN)
-        game.currentAttacker().hand.add(attackCard)
+        attacker.hand.add(attackCard)
         game.attack(attackCard)
     }
     @Test
@@ -67,7 +68,7 @@ class AttackTest {
         game.bout.defenseDeck.add(Card(Suit.HEARTS, Rank.QUEEN))
 
         val attackCard = Card(Suit.SPADES, Rank.QUEEN)
-        game.currentAttacker().hand.add(attackCard)
+        attacker.hand.add(attackCard)
         game.attack(attackCard)
     }
 }
