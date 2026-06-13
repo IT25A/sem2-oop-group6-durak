@@ -63,6 +63,14 @@
           <targetTests>
             <param>hwr.oop.*</param>
           </targetTests>
+
+          <!-- Avoid serialization mutations -->
+          <avoidCallsTo>
+            <avoidCallsTo>kotlin.jvm.internal</avoidCallsTo>
+            <avoidCallsTo>kotlinx.serialization</avoidCallsTo>
+          </avoidCallsTo>
+          <!-- Avoid serialization mutations -->
+
         </configuration>
         <dependencies>
           <dependency>

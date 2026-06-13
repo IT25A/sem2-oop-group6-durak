@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
  * @param suit [Suit]
  * @param rank [Rank]
  */
-//@Serializable
+@Serializable
 data class Card(
     val suit: Suit,
     val rank: Rank

@@ -2,10 +2,16 @@ package hwr.oop.examples.template.core
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class DeckTest {
-	val deck = Deck()
+	private lateinit var deck: Deck
+
+	@BeforeEach
+	fun setUp() {
+		deck = Deck.createShuffled()
+	}
 
 	@Test
 	fun `deck has 36 cards after init`() {

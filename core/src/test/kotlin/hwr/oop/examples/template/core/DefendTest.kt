@@ -2,13 +2,30 @@ package hwr.oop.examples.template.core
 
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class DefendTest {
-    val game = Game(GameId.random(), listOf("Alice", "Bob", "Charlie"), Suit.CLUBS)
-    val defender = game.defendingPlayer
-    val trump = game.trump
-    val bout = game.bout
+    private lateinit var game: Game
+    private lateinit var defender: Player
+    private lateinit var trump: Suit
+    private lateinit var bout: Bout
+
+    @BeforeEach
+    fun setUp() {
+        val deck = Deck.createShuffled()
+        deck.clearDeckForTest()
+        repeat(18) { deck.addCardToDeckForTest(Card(Suit.HEARTS, Rank.SIX)) }
+        deck.addCardToDeckForTest(Card(Suit.CLUBS, Rank.ACE))
+        game = Game.createGameFromDeck(
+            gameId = GameId.random(),
+            playerNames = listOf("Alice", "Bob", "Charlie"),
+            deck = deck
+        )
+        defender = game.defendingPlayer
+        trump = game.trump
+        bout = game.bout
+    }
 
     @Test
     fun `defend() throws on invalid gamePhase`(){

@@ -2,17 +2,21 @@ package hwr.oop.examples.template.core
 
 import kotlinx.serialization.Serializable
 
-//@Serializable
+@Serializable
 class Player(
-    val name: String = "",
-    val hand: MutableList<Card> = mutableListOf()
+    val name: String,
+    val hand: MutableList<Card>
 ) {
-    /**
-     * The player draws a card from the provided Deck
-     * @param deck to draw from
-     * @return _True_ if a card was successfully drawn, else returns _false_
-     */
-    fun draw(deck: Deck) : Boolean {
+    companion object {
+        fun create(name: String): Player {
+            return Player(
+                name = name,
+                hand = mutableListOf()
+            )
+        }
+    }
+
+    fun draw(deck: Deck): Boolean {
         val drawnCard = deck.draw()
         if (drawnCard != null) {
             hand.add(drawnCard)

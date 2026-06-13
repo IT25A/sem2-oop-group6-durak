@@ -3,11 +3,18 @@ package hwr.oop.examples.template.core
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class PlayerTest {
-    val deck = Deck()
-    val player = Player()
+    private lateinit var deck: Deck
+    private lateinit var player: Player
+
+    @BeforeEach
+    fun setUp() {
+        deck = Deck.createShuffled()
+        player = Player.create("")
+    }
 
     @Test
     fun `player can draw`(){

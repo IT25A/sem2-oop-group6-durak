@@ -2,12 +2,22 @@ package hwr.oop.examples.template.core
 
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class AttackTest {
-    val game = Game(GameId.random(), listOf("Alice", "Bob", "Charlie"))
-    val attacker = game.attackingPlayer
-    val bout = game.bout
+    private lateinit var game: Game
+    private lateinit var attacker: Player
+    private lateinit var bout: Bout
+
+    @BeforeEach
+    fun setUp() {
+        game = Game.createRandomGame(
+            playerNames = listOf("Alice", "Bob", "Charlie")
+        )
+        attacker = game.attackingPlayer
+        bout = game.bout
+    }
 
     @Test
     fun `attack() throws on invalid gamePhase`(){

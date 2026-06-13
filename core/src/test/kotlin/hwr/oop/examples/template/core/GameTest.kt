@@ -6,12 +6,33 @@ import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class GameTest {
-    val game = Game(GameId("1"), listOf("Alice", "Bob", "Charlie"))
-    val player = game.players[0]
+    private lateinit var game: Game
+    private lateinit var player: Player
 
+    @BeforeEach
+    fun setUp() {
+        game = Game.createRandomGame(
+            playerNames = listOf("Alice", "Bob", "Charlie"),
+            gameId = GameId("1")
+        )
+        player = game.players[0]
+    }
+
+    @Test
+    fun `gameId value returns the constructor string`() {
+        val id = GameId("fixed-id-123")
+        assertEquals("fixed-id-123", id.value)
+    }
+
+    @Test
+    fun `gameId random() value is non-empty`() {
+        val id = GameId.random()
+        assertTrue(id.value.isNotEmpty())
+    }
     @Test
     fun `init draws 6 cards to each player`(){
         assertThat(game.players[0].hand).hasSize(6)
@@ -21,15 +42,37 @@ class GameTest {
         assertThat(game.deck.getCards()).hasSize(36 - 18)
     }
     @Test
-    fun `trump uses override when provided`() {
-        val game = Game(GameId("1"), listOf("Alice", "Bob", "Charlie"), Suit.HEARTS)
-
-        assertEquals(Suit.HEARTS, game.trump)
+    fun `trump is taken from the last card in the deck`() {
+        val deck = Deck.createShuffled()
+        deck.clearDeckForTest()
+        repeat(18) { deck.addCardToDeckForTest(Card(Suit.HEARTS, Rank.SIX)) }
+        deck.addCardToDeckForTest(Card(Suit.CLUBS, Rank.ACE))
+        game = Game.createGameFromDeck(
+            playerNames = listOf("Alice", "Bob", "Charlie"),
+            gameId = GameId("1"),
+            deck = deck
+        )
+        assertEquals(Suit.CLUBS, game.trump)
     }
     @Test
-    fun `trump is taken from deck when no override is provided`() {
-        assertNotNull(game.trump)
-        assertEquals(game.deck.peekTrump().suit, game.trump)
+    fun `createGameFromDeck uses default gameId when not provided`() {
+        val deck = Deck.createShuffled()
+        val createdGame = Game.createGameFromDeck(
+            playerNames = listOf("Alice", "Bob"),
+            deck = deck
+        )
+        assertNotNull(createdGame.gameId)
+        assertTrue(createdGame.gameId.value.isNotEmpty())
+    }
+    @Test
+    fun `createGameFromDeck uses deck trump`() {
+        val deck = Deck.createShuffled()
+        val expectedTrump = deck.peekTrump().suit
+        val createdGame = Game.createGameFromDeck(
+            playerNames = listOf("Alice", "Bob"),
+            deck = deck
+        )
+        assertEquals(expectedTrump, createdGame.trump)
     }
     @Test
     fun `getNextNonEmptyPlayerIndex skips multiple empty hands`(){
@@ -61,7 +104,7 @@ class GameTest {
     }
     @Test
     fun `test determineNextTurn throws on invalid player`(){
-        val unknownPlayer = Player("Unknown")
+        val unknownPlayer = Player.create("Unknown")
         val exception = assertThrows(IllegalArgumentException::class.java){
             game.determineNextTurn(unknownPlayer)
         }
@@ -91,9 +134,9 @@ class GameTest {
 
         game.refillHands()
 
-        assert(game.players[0].hand.size == 6)
-        assert(game.players[1].hand.size == 6)
-        assert(game.players[2].hand.size == 4)
+        assertThat(game.players[0].hand).hasSize(6)
+        assertThat(game.players[1].hand).hasSize(6)
+        assertThat(game.players[2].hand).hasSize(4)
     }
     @Test
     fun `handlePlayerFinished adds player to win order`() {
@@ -112,6 +155,19 @@ class GameTest {
         assertEquals(game.playerWinOrder.size, 1)
     }
     @Test
+    fun `handlePlayerFinished calls pass when defender finishes with undefended attack`() {
+        val defender = game.defendingPlayer
+        game.setPhaseForTest(GamePhase.DEFENDING)
+        game.bout.attackDeck.add(Card(Suit.CLUBS, Rank.SIX))
+        defender.hand.clear()
+        game.deck.clearDeckForTest()
+
+        game.handlePlayerFinished(defender, true)
+
+        assertEquals(1, game.playerWinOrder.size)
+        assertTrue(game.bout.attackDeck.isEmpty())
+    }
+    @Test
     fun `determineGameOver changes gamePhase to FINISHED`(){
         game.playerWinOrder.add(game.players[0])
         game.playerWinOrder.add(game.players[1])
@@ -124,7 +180,7 @@ class GameTest {
             game.playerWinOrder.add(game.players[i])
         }
         game.determineGameOver()
-        assertThat(game.players.size - game.playerWinOrder.size == 1)
+        assertEquals((game.players.size - game.playerWinOrder.size), 1)
         assertEquals(GamePhase.FINISHED, game.getGamePhaseForTest())
     }
     @Test
@@ -133,7 +189,7 @@ class GameTest {
             game.playerWinOrder.add(game.players[i])
         }
         game.determineGameOver()
-        assertThat(game.players.size - game.playerWinOrder.size == 0)
+        assertEquals((game.players.size - game.playerWinOrder.size), 0)
         assertEquals(GamePhase.FINISHED, game.getGamePhaseForTest())
     }
     @Test
@@ -142,7 +198,7 @@ class GameTest {
             game.playerWinOrder.add(game.players[i])
         }
         game.determineGameOver()
-        assertThat(game.players.size - game.playerWinOrder.size == 2)
+        assertEquals((game.players.size - game.playerWinOrder.size), 2)
         assertNotEquals(GamePhase.FINISHED, game.getGamePhaseForTest())
     }
 }

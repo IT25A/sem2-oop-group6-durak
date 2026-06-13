@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 /**
  * Stores the cards played by the Attacker/Defender
  */
-//@Serializable
+@Serializable
 class Bout {
     val attackDeck: MutableList<Card> = mutableListOf()
     val defenseDeck: MutableList<Card> = mutableListOf()

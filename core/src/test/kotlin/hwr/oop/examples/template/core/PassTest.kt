@@ -2,10 +2,18 @@ package hwr.oop.examples.template.core
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class PassTest {
-    val game = Game(GameId("1"), listOf("Alice", "Bob", "Charlie"))
+    private lateinit var game: Game
+
+    @BeforeEach
+    fun setUp() {
+        game = Game.createRandomGame(
+            playerNames = listOf("Alice", "Bob", "Charlie")
+        )
+    }
 
     @Test
     fun `pass next attacker is defender when defender takes cards`(){
