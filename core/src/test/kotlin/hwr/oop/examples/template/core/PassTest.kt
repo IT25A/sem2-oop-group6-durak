@@ -18,8 +18,8 @@ class PassTest {
     @Test
     fun `pass next attacker is defender when defender takes cards`(){
         game.setPhaseForTest(GamePhase.DEFENDING)
-        game.bout.attackDeck.add(Card(Suit.CLUBS, Rank.QUEEN))
-        game.bout.defenseDeck.clear()
+        game.bout.addAttackCard(Card(Suit.CLUBS, Rank.QUEEN))
+        game.bout.clearDefenseDeck()
 
         game.pass()
         assertEquals(game.players[2], game.attackingPlayer)
@@ -27,8 +27,8 @@ class PassTest {
     @Test
     fun `pass next attacker is defender`(){
         game.setPhaseForTest(GamePhase.DEFENDING)
-        game.bout.attackDeck.add(Card(Suit.CLUBS, Rank.QUEEN))
-        game.bout.defenseDeck.add(Card(Suit.CLUBS, Rank.QUEEN))
+        game.bout.addAttackCard(Card(Suit.CLUBS, Rank.QUEEN))
+        game.bout.addDefenseCard(Card(Suit.CLUBS, Rank.QUEEN))
 
         game.pass()
         assertEquals(game.players[1], game.attackingPlayer)
@@ -36,8 +36,8 @@ class PassTest {
     @Test
     fun `defenderTakesCards is true when phase is DEFENDING and bout is NOT defended`(){
         game.setPhaseForTest(GamePhase.DEFENDING)
-        game.bout.attackDeck.add(Card(Suit.CLUBS, Rank.QUEEN))
-        game.bout.defenseDeck.clear()
+        game.bout.addAttackCard(Card(Suit.CLUBS, Rank.QUEEN))
+        game.bout.clearDefenseDeck()
 
         game.pass()
         assertEquals(game.players[2], game.attackingPlayer)
@@ -46,8 +46,8 @@ class PassTest {
     @Test
     fun `defenderTakesCards to false when phase is DEFENDING and bout IS defended`() {
         game.setPhaseForTest(GamePhase.DEFENDING)
-        game.bout.attackDeck.add(Card(Suit.CLUBS, Rank.QUEEN))
-        game.bout.defenseDeck.add(Card(Suit.DIAMONDS, Rank.KING))
+        game.bout.addAttackCard(Card(Suit.CLUBS, Rank.QUEEN))
+        game.bout.addDefenseCard(Card(Suit.DIAMONDS, Rank.KING))
 
         val attackerBefore = game.attackingPlayer
 
@@ -57,8 +57,8 @@ class PassTest {
     @Test
     fun `defenderTakesCards to false when phase is ATTACKING and bout IS NOT defended`() {
         game.setPhaseForTest(GamePhase.ATTACKING)
-        game.bout.attackDeck.add(Card(Suit.CLUBS, Rank.QUEEN))
-        game.bout.defenseDeck.clear()
+        game.bout.addAttackCard(Card(Suit.CLUBS, Rank.QUEEN))
+        game.bout.clearDefenseDeck()
 
         val attackerBefore = game.attackingPlayer
 
@@ -68,8 +68,8 @@ class PassTest {
     @Test
     fun `defenderTakesCards to false when phase is ATTACKING and bout IS defended`() {
         game.setPhaseForTest(GamePhase.ATTACKING)
-        game.bout.attackDeck.add(Card(Suit.CLUBS, Rank.QUEEN))
-        game.bout.defenseDeck.add(Card(Suit.DIAMONDS, Rank.KING))
+        game.bout.addAttackCard(Card(Suit.CLUBS, Rank.QUEEN))
+        game.bout.addDefenseCard(Card(Suit.DIAMONDS, Rank.KING))
 
         val attackerBefore = game.attackingPlayer
 
@@ -79,23 +79,23 @@ class PassTest {
     @Test
     fun `defender takes all bout cards when round lost`(){
         val defender = game.defendingPlayer
-        defender.hand.clear()
+        defender.clearHand()
 
-        game.bout.attackDeck.add(Card(Suit.CLUBS, Rank.QUEEN))
-        game.bout.attackDeck.add(Card(Suit.CLUBS, Rank.QUEEN))
-        game.bout.defenseDeck.add(Card(Suit.CLUBS, Rank.QUEEN))
+        game.bout.addAttackCard(Card(Suit.CLUBS, Rank.QUEEN))
+        game.bout.addAttackCard(Card(Suit.CLUBS, Rank.QUEEN))
+        game.bout.addDefenseCard(Card(Suit.CLUBS, Rank.QUEEN))
 
         game.finishBout(false)
-        assertEquals(defender.hand.size, 3)
+        assertEquals(defender.hand().size, 3)
     }
     @Test
     fun `bout gets cleared when defender succeeds`(){
-        val attackDeck = game.bout.attackDeck
-        val defenseDeck = game.bout.defenseDeck
-        attackDeck.add(Card(Suit.CLUBS, Rank.QUEEN))
-        attackDeck.add(Card(Suit.CLUBS, Rank.QUEEN))
-        defenseDeck.add(Card(Suit.CLUBS, Rank.QUEEN))
-        defenseDeck.add(Card(Suit.CLUBS, Rank.QUEEN))
+        val attackDeck = game.bout.attackDeck()
+        val defenseDeck = game.bout.defenseDeck()
+        game.bout.addAttackCard(Card(Suit.CLUBS, Rank.QUEEN))
+        game.bout.addAttackCard(Card(Suit.CLUBS, Rank.QUEEN))
+        game.bout.addDefenseCard(Card(Suit.CLUBS, Rank.QUEEN))
+        game.bout.addDefenseCard(Card(Suit.CLUBS, Rank.QUEEN))
 
         game.finishBout(true)
         assertEquals(attackDeck.size, 0)
@@ -104,21 +104,21 @@ class PassTest {
 
     @Test
     fun `isBoutDefended is true if sizes equal and not empty`() {
-        game.bout.attackDeck.add(Card(Suit.CLUBS, Rank.QUEEN))
-        game.bout.defenseDeck.add(Card(Suit.CLUBS, Rank.QUEEN))
+        game.bout.addAttackCard(Card(Suit.CLUBS, Rank.QUEEN))
+        game.bout.addDefenseCard(Card(Suit.CLUBS, Rank.QUEEN))
 
-        assertEquals(true, game.isBoutDefended())
+        assertEquals(true, game.bout.isBoutDefended())
     }
     @Test
     fun `isBoutDefended is false if both sizes empty`() {
-        assertEquals(false, game.isBoutDefended())
+        assertEquals(false, game.bout.isBoutDefended())
     }
     @Test
     fun `isBoutDefended is true if sizes not equal`() {
-        game.bout.attackDeck.add(Card(Suit.CLUBS, Rank.QUEEN))
-        game.bout.attackDeck.add(Card(Suit.CLUBS, Rank.QUEEN))
-        game.bout.defenseDeck.add(Card(Suit.CLUBS, Rank.QUEEN))
+        game.bout.addAttackCard(Card(Suit.CLUBS, Rank.QUEEN))
+        game.bout.addAttackCard(Card(Suit.CLUBS, Rank.QUEEN))
+        game.bout.addDefenseCard(Card(Suit.CLUBS, Rank.QUEEN))
 
-        assertEquals(false, game.isBoutDefended())
+        assertEquals(false, game.bout.isBoutDefended())
     }
 }

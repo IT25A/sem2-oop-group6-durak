@@ -29,8 +29,8 @@ class AttackTest {
     }
     @Test
     fun `attack() throws on invalid card`(){
-        attacker.hand.clear()
-        attacker.hand.add(Card(Suit.DIAMONDS, Rank.QUEEN))
+        attacker.clearHand()
+        attacker.addToHand(Card(Suit.DIAMONDS, Rank.QUEEN))
         val exception = assertThrows(IllegalArgumentException::class.java){
             game.attack(Card(Suit.SPADES, Rank.QUEEN))
         }
@@ -40,11 +40,11 @@ class AttackTest {
     fun `attack() throws on illegal card move`(){
         game.setPhaseForTest(GamePhase.ATTACKING)
 
-        bout.attackDeck.add(Card(Suit.DIAMONDS, Rank.QUEEN))
-        bout.defenseDeck.add(Card(Suit.DIAMONDS, Rank.KING))
+        bout.addAttackCard(Card(Suit.DIAMONDS, Rank.QUEEN))
+        bout.addDefenseCard(Card(Suit.DIAMONDS, Rank.KING))
 
         val illegalCard = Card(Suit.SPADES, Rank.SIX)
-        attacker.hand.add(illegalCard)
+        attacker.addToHand(illegalCard)
 
         val exception = assertThrows(IllegalArgumentException::class.java){
             game.attack(illegalCard)
@@ -54,31 +54,30 @@ class AttackTest {
     @Test
     fun `attack() allowed when bout attackDeck is empty`() {
         game.setPhaseForTest(GamePhase.ATTACKING)
-        game.bout.attackDeck.clear()
-        game.bout.defenseDeck.clear()
+        game.bout.clear()
 
         val attackCard = Card(Suit.HEARTS, Rank.SIX)
-        attacker.hand.add(attackCard)
+        attacker.addToHand(attackCard)
         game.attack(attackCard)
     }
     @Test
     fun `attack() allowed when bout attackDeck contains rank`() {
         game.setPhaseForTest(GamePhase.ATTACKING)
-        game.bout.attackDeck.add(Card(Suit.HEARTS, Rank.QUEEN))
-        game.bout.defenseDeck.clear()
+        game.bout.addAttackCard(Card(Suit.HEARTS, Rank.QUEEN))
+        game.bout.clearDefenseDeck()
 
         val attackCard = Card(Suit.SPADES, Rank.QUEEN)
-        attacker.hand.add(attackCard)
+        attacker.addToHand(attackCard)
         game.attack(attackCard)
     }
     @Test
     fun `attack() allowed when defenseDeck contains rank`() {
         game.setPhaseForTest(GamePhase.ATTACKING)
-        game.bout.attackDeck.add(Card(Suit.HEARTS, Rank.JACK))
-        game.bout.defenseDeck.add(Card(Suit.HEARTS, Rank.QUEEN))
+        game.bout.addAttackCard(Card(Suit.HEARTS, Rank.JACK))
+        game.bout.addDefenseCard(Card(Suit.HEARTS, Rank.QUEEN))
 
         val attackCard = Card(Suit.SPADES, Rank.QUEEN)
-        attacker.hand.add(attackCard)
+        attacker.addToHand(attackCard)
         game.attack(attackCard)
     }
 }

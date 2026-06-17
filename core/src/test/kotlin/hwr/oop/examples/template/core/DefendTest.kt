@@ -38,8 +38,8 @@ class DefendTest {
     @Test
     fun `defend() throws on invalid card`(){
         game.setPhaseForTest(GamePhase.DEFENDING)
-        defender.hand.clear()
-        defender.hand.add(Card(Suit.DIAMONDS, Rank.QUEEN))
+        defender.clearHand()
+        defender.addToHand(Card(Suit.DIAMONDS, Rank.QUEEN))
         val exception = assertThrows(IllegalArgumentException::class.java){
             game.defend(Card(Suit.SPADES, Rank.QUEEN))
         }
@@ -49,11 +49,11 @@ class DefendTest {
     fun `defend() throws on illegal card move`(){
         game.setPhaseForTest(GamePhase.DEFENDING)
 
-        bout.attackDeck.add(Card(Suit.DIAMONDS, Rank.QUEEN))
-        bout.defenseDeck.clear()
+        bout.addAttackCard(Card(Suit.DIAMONDS, Rank.QUEEN))
+        bout.clearDefenseDeck()
 
         val illegalCard = Card(Suit.SPADES, Rank.SIX)
-        defender.hand.add(illegalCard)
+        defender.addToHand(illegalCard)
 
         val exception = assertThrows(IllegalArgumentException::class.java){
             game.defend(illegalCard)
@@ -67,9 +67,9 @@ class DefendTest {
         val attackCard = Card(Suit.HEARTS, Rank.NINE)
         val defendCard = Card(trump, Rank.SIX)
 
-        bout.attackDeck.add(attackCard)
-        defender.hand.clear()
-        defender.hand.add(defendCard)
+        bout.addAttackCard(attackCard)
+        defender.clearHand()
+        defender.addToHand(defendCard)
 
         game.defend(defendCard)
     }
@@ -80,9 +80,9 @@ class DefendTest {
         val attackCard = Card(Suit.HEARTS, Rank.NINE)
         val defendCard = Card(Suit.HEARTS, Rank.JACK)
 
-        bout.attackDeck.add(attackCard)
-        defender.hand.clear()
-        defender.hand.add(defendCard)
+        bout.addAttackCard(attackCard)
+        defender.clearHand()
+        defender.addToHand(defendCard)
 
         game.defend(defendCard)
     }
@@ -93,9 +93,9 @@ class DefendTest {
         val attackCard = Card(trump, Rank.NINE)
         val defendCard = Card(Suit.HEARTS, Rank.KING)
 
-        bout.attackDeck.add(attackCard)
-        defender.hand.clear()
-        defender.hand.add(defendCard)
+        bout.addAttackCard(attackCard)
+        defender.clearHand()
+        defender.addToHand(defendCard)
 
         assertThrows(IllegalArgumentException::class.java) {
             game.defend(defendCard)
@@ -108,9 +108,9 @@ class DefendTest {
         val attackCard = Card(Suit.HEARTS, Rank.JACK)
         val defendCard = Card(Suit.HEARTS, Rank.NINE)
 
-        bout.attackDeck.add(attackCard)
-        defender.hand.clear()
-        defender.hand.add(defendCard)
+        bout.addAttackCard(attackCard)
+        defender.clearHand()
+        defender.addToHand(defendCard)
 
         assertThrows(IllegalArgumentException::class.java) {
             game.defend(defendCard)
@@ -123,9 +123,9 @@ class DefendTest {
         val attackCard = Card(Suit.HEARTS, Rank.EIGHT)
         val defendCard = Card(Suit.SPADES, Rank.KING)
 
-        bout.attackDeck.add(attackCard)
-        defender.hand.clear()
-        defender.hand.add(defendCard)
+        bout.addAttackCard(attackCard)
+        defender.clearHand()
+        defender.addToHand(defendCard)
 
         assertThrows(IllegalArgumentException::class.java) {
             game.defend(defendCard)

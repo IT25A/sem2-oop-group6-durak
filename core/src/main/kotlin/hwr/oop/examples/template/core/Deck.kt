@@ -3,7 +3,7 @@ package hwr.oop.examples.template.core
 import kotlinx.serialization.Serializable
 
 @Serializable
-class Deck(
+data class Deck(
     private val cards: MutableList<Card>
 ){
     companion object {

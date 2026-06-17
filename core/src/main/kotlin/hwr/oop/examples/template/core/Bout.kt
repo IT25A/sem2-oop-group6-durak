@@ -6,7 +6,29 @@ import kotlinx.serialization.Serializable
  * Stores the cards played by the Attacker/Defender
  */
 @Serializable
-class Bout {
-    val attackDeck: MutableList<Card> = mutableListOf()
-    val defenseDeck: MutableList<Card> = mutableListOf()
+data class Bout (
+    private val attackDeck: MutableList<Card> = mutableListOf(),
+    private val defenseDeck: MutableList<Card> = mutableListOf())
+{
+    fun attackDeck() = attackDeck
+    fun defenseDeck() = defenseDeck
+    fun addAttackCard(card: Card) {
+        attackDeck.add(card)
+    }
+    fun addDefenseCard(card: Card) {
+        defenseDeck.add(card)
+    }
+    fun clear() {
+        attackDeck.clear()
+        defenseDeck.clear()
+    }
+    fun clearAttackDeck(){
+        attackDeck.clear()
+    }
+    fun clearDefenseDeck(){
+        defenseDeck.clear()
+    }
+    fun isBoutDefended(): Boolean {
+        return attackDeck.size == defenseDeck.size && attackDeck.isNotEmpty()
+    }
 }

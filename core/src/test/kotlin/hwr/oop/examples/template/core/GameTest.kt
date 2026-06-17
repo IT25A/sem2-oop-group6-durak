@@ -35,9 +35,9 @@ class GameTest {
     }
     @Test
     fun `init draws 6 cards to each player`(){
-        assertThat(game.players[0].hand).hasSize(6)
-        assertThat(game.players[1].hand).hasSize(6)
-        assertThat(game.players[2].hand).hasSize(6)
+        assertThat(game.players[0].hand()).hasSize(6)
+        assertThat(game.players[1].hand()).hasSize(6)
+        assertThat(game.players[2].hand()).hasSize(6)
 
         assertThat(game.deck.getCards()).hasSize(36 - 18)
     }
@@ -76,8 +76,8 @@ class GameTest {
     }
     @Test
     fun `getNextNonEmptyPlayerIndex skips multiple empty hands`(){
-        game.players[0].hand.clear()
-        game.players[1].hand.clear()
+        game.players[0].clearHand()
+        game.players[1].clearHand()
         val nextIndex = game.getNextNonEmptyPlayerIndex(0)
         assertEquals(2, nextIndex)
     }
@@ -105,7 +105,7 @@ class GameTest {
     @Test
     fun `test determineNextTurn throws on invalid player`(){
         val unknownPlayer = Player.create("Unknown")
-        val exception = assertThrows(IllegalArgumentException::class.java){
+        val exception = assertThrows(InvalidPlayerTurn::class.java){
             game.determineNextTurn(unknownPlayer)
         }
         assertTrue(exception.message!!.contains("invalid"))
@@ -124,23 +124,23 @@ class GameTest {
     }
     @Test
     fun `refillHands succeeds`() {
-        game.players.forEach { it.hand.clear() }
-        repeat(5) { game.players[0].hand.add(Card(Suit.CLUBS, Rank.QUEEN)) }
-        repeat(4) { game.players[1].hand.add(Card(Suit.CLUBS, Rank.QUEEN)) }
-        repeat(3) { game.players[2].hand.add(Card(Suit.CLUBS, Rank.QUEEN)) }
+        game.players.forEach { it.clearHand() }
+        repeat(5) { game.players[0].addToHand(Card(Suit.CLUBS, Rank.QUEEN)) }
+        repeat(4) { game.players[1].addToHand(Card(Suit.CLUBS, Rank.QUEEN)) }
+        repeat(3) { game.players[2].addToHand(Card(Suit.CLUBS, Rank.QUEEN)) }
 
         game.deck.clearDeckForTest()
         repeat(4) { game.deck.addCardToDeckForTest(Card(Suit.CLUBS, Rank.ACE)) }
 
         game.refillHands()
 
-        assertThat(game.players[0].hand).hasSize(6)
-        assertThat(game.players[1].hand).hasSize(6)
-        assertThat(game.players[2].hand).hasSize(4)
+        assertThat(game.players[0].hand()).hasSize(6)
+        assertThat(game.players[1].hand()).hasSize(6)
+        assertThat(game.players[2].hand()).hasSize(4)
     }
     @Test
     fun `handlePlayerFinished adds player to win order`() {
-        player.hand.clear()
+        player.clearHand()
         game.deck.clearDeckForTest()
 
         game.handlePlayerFinished(player, false)
@@ -148,7 +148,7 @@ class GameTest {
     }
     @Test
     fun `handlePlayerFinished if defending player`() {
-        player.hand.clear()
+        player.clearHand()
         game.deck.clearDeckForTest()
 
         game.handlePlayerFinished(player, true)
@@ -158,14 +158,14 @@ class GameTest {
     fun `handlePlayerFinished calls pass when defender finishes with undefended attack`() {
         val defender = game.defendingPlayer
         game.setPhaseForTest(GamePhase.DEFENDING)
-        game.bout.attackDeck.add(Card(Suit.CLUBS, Rank.SIX))
-        defender.hand.clear()
+        game.bout.addAttackCard(Card(Suit.CLUBS, Rank.SIX))
+        defender.clearHand()
         game.deck.clearDeckForTest()
 
         game.handlePlayerFinished(defender, true)
 
         assertEquals(1, game.playerWinOrder.size)
-        assertTrue(game.bout.attackDeck.isEmpty())
+        assertTrue(game.bout.attackDeck().isEmpty())
     }
     @Test
     fun `determineGameOver changes gamePhase to FINISHED`(){

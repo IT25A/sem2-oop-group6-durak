@@ -7,6 +7,7 @@ import okio.Path.Companion.toPath
 import okio.fakefilesystem.FakeFileSystem
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
@@ -47,6 +48,6 @@ class FileSystemPersistenceTest {
 		)
 		sut.save(game)
 		val loadedGame = sut.getGame(game.gameId)
-		assertThat(loadedGame == game)
+		assertEquals(loadedGame, game)
 	}
 }

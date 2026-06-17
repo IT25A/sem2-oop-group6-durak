@@ -20,7 +20,7 @@ class PlayerTest {
     fun `player can draw`(){
         val topCard = deck.getCards().firstOrNull()
         assertThat(player.draw(deck)).isTrue()
-        assertThat(player.hand.contains(topCard)).isTrue()
+        assertThat(player.hand().contains(topCard)).isTrue()
         assertThat(deck.getCards().contains(topCard)).isFalse()
     }
     @Test
