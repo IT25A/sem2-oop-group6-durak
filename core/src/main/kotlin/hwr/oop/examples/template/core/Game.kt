@@ -12,16 +12,15 @@ data class Game(
     private var attackerIndex: Int = 0,
     private var defenderIndex: Int = 1,
     private var supplyRotation: MutableList<Player> = mutableListOf(),
-    private var gamePhase: GamePhase = GamePhase.ATTACKING
+    private var gamePhase: GamePhase = GamePhase.ATTACKING,
+    private val playerWinOrder: MutableList<Player> = mutableListOf()
 ) {
     val attackingPlayer get() = players[attackerIndex]
     val defendingPlayer get() = players[defenderIndex]
-    val playerWinOrder: MutableList<Player> = mutableListOf()
 
-    fun getGamePhaseForTest(): GamePhase = gamePhase
-    fun setPhaseForTest(phase: GamePhase) {
-        this.gamePhase = phase
-    }
+    fun getGamePhase(): GamePhase = gamePhase
+    fun setGamePhase(phase: GamePhase) { gamePhase = phase }
+    fun getPlayerWinOrder() = playerWinOrder
 
     companion object {
         fun createRandomGame(
@@ -65,12 +64,12 @@ data class Game(
         var index = fromIndex
         do {
             index = (index + 1) % players.size
-        } while (players[index].hand().isEmpty())
+        } while (players[index].getHand().isEmpty())
         return index
     }
     fun determineNextTurn(passingPlayer: Player) {
         if (passingPlayer != attackingPlayer && passingPlayer != defendingPlayer) {
-            throw InvalidPlayerTurn("Passing player is invalid")
+            throw InvalidPlayerTurnException("Passing player is invalid")
         }
         if (attackingPlayer == passingPlayer) {
             attackerIndex = getNextNonEmptyPlayerIndex(attackerIndex)
@@ -85,15 +84,15 @@ data class Game(
         if (gamePhase != GamePhase.ATTACKING) {
             throw InvalidMoveException("Can not attack. Game $gameId is currently in $gamePhase ")
         }
-        if (!attackingPlayer.hand().contains(card)) {
-            throw IllegalArgumentException("Card is not part of ${attackingPlayer.name}'s hand")
+        if (!attackingPlayer.getHand().contains(card)) {
+            throw UnavailableCardException("Card is not part of ${attackingPlayer.name}'s hand")
         }
         val canAttack =
-            bout.attackDeck().isEmpty() ||
-            bout.attackDeck().any { it.rank == card.rank } ||
-            bout.defenseDeck().any { it.rank == card.rank }
+            bout.getAttackDeck().isEmpty() ||
+            bout.getAttackDeck().any { it.rank == card.rank } ||
+            bout.getDefenseDeck().any { it.rank == card.rank }
         if (!canAttack) {
-            throw IllegalArgumentException("You are not allowed to play this card")
+            throw InvalidCardException("You are not allowed to play this card")
         }
         bout.addAttackCard(card)
         attackingPlayer.removeFromHand(card)
@@ -104,15 +103,15 @@ data class Game(
         if (gamePhase != GamePhase.DEFENDING) {
             throw InvalidMoveException("Can not defend. Game $gameId is currently in $gamePhase phase")
         }
-        if (!defendingPlayer.hand().contains(card)) {
-            throw IllegalArgumentException("Card is not part of ${defendingPlayer.name}'s hand")
+        if (!defendingPlayer.getHand().contains(card)) {
+            throw UnavailableCardException("Card is not part of ${defendingPlayer.name}'s hand")
         }
-        val attackCard = bout.attackDeck().last()
+        val attackCard = bout.getAttackDeck().last()
         val canDefend =
             (attackCard.suit != trump && card.suit == trump) ||
             (attackCard.suit == card.suit && card.rank.rankValue > attackCard.rank.rankValue)
         if (!canDefend) {
-            throw IllegalArgumentException("$card is not a valid card to defend with")
+            throw InvalidCardException("$card is not a valid card to defend with")
         }
         bout.addDefenseCard(card)
         defendingPlayer.removeFromHand(card)
@@ -142,7 +141,7 @@ data class Game(
         val drawOrder = (attackerIndex until players.size) + (0..attackerIndex)
         for (index in drawOrder) {
             val player = players[index]
-            while (player.hand().size < 6 && deck.getCards().isNotEmpty()) {
+            while (player.getHand().size < 6 && deck.getCards().isNotEmpty()) {
                 player.draw(deck)
             }
         }
@@ -166,16 +165,16 @@ data class Game(
     }
     fun finishBout(defenderSucceeded: Boolean) {
         if (defenderSucceeded) {
-            bout.clear()
+            bout.clearBout()
         } else {
-            defendingPlayer.addAllToHand(bout.attackDeck())
-            defendingPlayer.addAllToHand(bout.defenseDeck())
-            bout.clear()
+            defendingPlayer.addAllToHand(bout.getAttackDeck())
+            defendingPlayer.addAllToHand(bout.getDefenseDeck())
+            bout.clearBout()
         }
     }
 
     fun handlePlayerFinished(player: Player, callPassIfDefender: Boolean = false) {
-        if (player.hand().isEmpty() && deck.getCards().isEmpty()) {
+        if (player.getHand().isEmpty() && deck.getCards().isEmpty()) {
             playerWinOrder.add(player)
             determineGameOver()
             if (callPassIfDefender) {

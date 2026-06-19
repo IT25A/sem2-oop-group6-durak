@@ -17,10 +17,15 @@ class PlayerTest {
     }
 
     @Test
+    fun `player name is set correctly`() {
+        val player = Player.create("Alice")
+        assertThat(player.name).isEqualTo("Alice")
+    }
+    @Test
     fun `player can draw`(){
         val topCard = deck.getCards().firstOrNull()
-        assertThat(player.draw(deck)).isTrue()
-        assertThat(player.hand().contains(topCard)).isTrue()
+        player.draw(deck)
+        assertThat(player.getHand().contains(topCard)).isTrue()
         assertThat(deck.getCards().contains(topCard)).isFalse()
     }
     @Test
@@ -28,7 +33,7 @@ class PlayerTest {
         deck.getCards().forEach { _ ->
             player.draw(deck)
         }
-        val exception = assertThrows(IllegalArgumentException::class.java) {
+        val exception = assertThrows(EmptyDeckException::class.java) {
             player.draw(deck)
         }
         assertTrue(exception.message!!.contains("Drawn card not found"))

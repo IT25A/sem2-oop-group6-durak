@@ -1,5 +1,6 @@
 package hwr.oop.examples.template.core
 
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -39,7 +40,18 @@ class DeckTest {
 	@Test
 	fun `clearDeckForTest should empty the deck`() {
 		assertTrue(deck.remaining() > 0)
-		deck.clearDeckForTest()
+		deck.clearDeck()
 		assertTrue(deck.getCards().isEmpty())
+	}
+	@Test
+	fun `createShuffled does not return cards in original sorted order`() {
+		val deck = Deck.createShuffled()
+		val cards = deck.getCards()
+
+		val sortedCards = Suit.entries.flatMap { suit ->
+			Rank.entries.map { rank -> Card(suit, rank) }
+		}
+
+		assertThat(cards).isNotEqualTo(sortedCards)
 	}
 }

@@ -15,8 +15,7 @@ data class Player(
             )
         }
     }
-    fun hand() = hand
-
+    fun getHand() = hand
     fun addAllToHand(list: List<Card>) {
         hand.addAll(list)
     }
@@ -30,13 +29,12 @@ data class Player(
         hand.clear()
     }
 
-    fun draw(deck: Deck): Boolean {
+    fun draw(deck: Deck) {
         val drawnCard = deck.draw()
         if (drawnCard != null) {
             hand.add(drawnCard)
-            return true
         } else {
-            throw IllegalArgumentException("Drawn card not found")
+            throw EmptyDeckException("Drawn card not found")
         }
     }
 }

@@ -34,10 +34,10 @@ data class Deck(
 
     fun getCards(): List<Card> = cards.toList()
 
-    fun clearDeckForTest() {
+    fun clearDeck() {
         cards.clear()
     }
-    fun addCardToDeckForTest(card: Card) {
+    fun addCardToDeck(card: Card) {
         cards.add(card)
     }
 }

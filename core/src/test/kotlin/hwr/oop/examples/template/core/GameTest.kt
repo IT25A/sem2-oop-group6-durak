@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test
 class GameTest {
     private lateinit var game: Game
     private lateinit var player: Player
+    private lateinit var bout: Bout
 
     @BeforeEach
     fun setUp() {
@@ -20,6 +21,7 @@ class GameTest {
             gameId = GameId("1")
         )
         player = game.players[0]
+        bout = game.bout
     }
 
     @Test
@@ -27,7 +29,6 @@ class GameTest {
         val id = GameId("fixed-id-123")
         assertEquals("fixed-id-123", id.value)
     }
-
     @Test
     fun `gameId random() value is non-empty`() {
         val id = GameId.random()
@@ -35,18 +36,18 @@ class GameTest {
     }
     @Test
     fun `init draws 6 cards to each player`(){
-        assertThat(game.players[0].hand()).hasSize(6)
-        assertThat(game.players[1].hand()).hasSize(6)
-        assertThat(game.players[2].hand()).hasSize(6)
+        assertThat(game.players[0].getHand()).hasSize(6)
+        assertThat(game.players[1].getHand()).hasSize(6)
+        assertThat(game.players[2].getHand()).hasSize(6)
 
         assertThat(game.deck.getCards()).hasSize(36 - 18)
     }
     @Test
     fun `trump is taken from the last card in the deck`() {
         val deck = Deck.createShuffled()
-        deck.clearDeckForTest()
-        repeat(18) { deck.addCardToDeckForTest(Card(Suit.HEARTS, Rank.SIX)) }
-        deck.addCardToDeckForTest(Card(Suit.CLUBS, Rank.ACE))
+        deck.clearDeck()
+        repeat(18) { deck.addCardToDeck(Card(Suit.HEARTS, Rank.SIX)) }
+        deck.addCardToDeck(Card(Suit.CLUBS, Rank.ACE))
         game = Game.createGameFromDeck(
             playerNames = listOf("Alice", "Bob", "Charlie"),
             gameId = GameId("1"),
@@ -105,7 +106,7 @@ class GameTest {
     @Test
     fun `test determineNextTurn throws on invalid player`(){
         val unknownPlayer = Player.create("Unknown")
-        val exception = assertThrows(InvalidPlayerTurn::class.java){
+        val exception = assertThrows(InvalidPlayerTurnException::class.java){
             game.determineNextTurn(unknownPlayer)
         }
         assertTrue(exception.message!!.contains("invalid"))
@@ -129,76 +130,103 @@ class GameTest {
         repeat(4) { game.players[1].addToHand(Card(Suit.CLUBS, Rank.QUEEN)) }
         repeat(3) { game.players[2].addToHand(Card(Suit.CLUBS, Rank.QUEEN)) }
 
-        game.deck.clearDeckForTest()
-        repeat(4) { game.deck.addCardToDeckForTest(Card(Suit.CLUBS, Rank.ACE)) }
+        game.deck.clearDeck()
+        repeat(4) { game.deck.addCardToDeck(Card(Suit.CLUBS, Rank.ACE)) }
 
         game.refillHands()
 
-        assertThat(game.players[0].hand()).hasSize(6)
-        assertThat(game.players[1].hand()).hasSize(6)
-        assertThat(game.players[2].hand()).hasSize(4)
+        assertThat(game.players[0].getHand()).hasSize(6)
+        assertThat(game.players[1].getHand()).hasSize(6)
+        assertThat(game.players[2].getHand()).hasSize(4)
     }
     @Test
     fun `handlePlayerFinished adds player to win order`() {
         player.clearHand()
-        game.deck.clearDeckForTest()
+        game.deck.clearDeck()
 
         game.handlePlayerFinished(player, false)
-        assertEquals(game.playerWinOrder.size, 1)
+        assertEquals(game.getPlayerWinOrder().size, 1)
+    }
+    @Test
+    fun `handlePlayerFinished sets game to FINISHED when only one player remains`() {
+        game.deck.clearDeck()
+        game.players[0].clearHand()
+        game.players[1].clearHand()
+        game.getPlayerWinOrder().add(game.players[0])
+
+        game.handlePlayerFinished(game.players[1], false)
+
+        assertEquals(GamePhase.FINISHED, game.getGamePhase())
     }
     @Test
     fun `handlePlayerFinished if defending player`() {
         player.clearHand()
-        game.deck.clearDeckForTest()
+        game.deck.clearDeck()
 
         game.handlePlayerFinished(player, true)
-        assertEquals(game.playerWinOrder.size, 1)
+        assertEquals(game.getPlayerWinOrder().size, 1)
     }
     @Test
     fun `handlePlayerFinished calls pass when defender finishes with undefended attack`() {
         val defender = game.defendingPlayer
-        game.setPhaseForTest(GamePhase.DEFENDING)
+        game.setGamePhase(GamePhase.DEFENDING)
         game.bout.addAttackCard(Card(Suit.CLUBS, Rank.SIX))
         defender.clearHand()
-        game.deck.clearDeckForTest()
+        game.deck.clearDeck()
 
         game.handlePlayerFinished(defender, true)
 
-        assertEquals(1, game.playerWinOrder.size)
-        assertTrue(game.bout.attackDeck().isEmpty())
+        assertEquals(1, game.getPlayerWinOrder().size)
+        assertTrue(game.bout.getAttackDeck().isEmpty())
     }
     @Test
+    fun `finishBout with defenderSucceeded false clears bout after giving cards to defender`() {
+        val attackCard = Card(Suit.CLUBS, Rank.SIX)
+        val defenseCard = Card(Suit.HEARTS, Rank.SEVEN)
+        bout.addAttackCard(attackCard)
+        bout.addDefenseCard(defenseCard)
+        val defender = game.defendingPlayer
+        val handSizeBefore = defender.getHand().size
+
+        game.finishBout(false)
+
+        assertThat(defender.getHand()).hasSize(handSizeBefore + 2)
+        assertThat(bout.getAttackDeck()).isEmpty()
+        assertThat(bout.getDefenseDeck()).isEmpty()
+    }
+
+    @Test
     fun `determineGameOver changes gamePhase to FINISHED`(){
-        game.playerWinOrder.add(game.players[0])
-        game.playerWinOrder.add(game.players[1])
+        game.getPlayerWinOrder().add(game.players[0])
+        game.getPlayerWinOrder().add(game.players[1])
         game.determineGameOver()
-        assertEquals(GamePhase.FINISHED, game.getGamePhaseForTest())
+        assertEquals(GamePhase.FINISHED, game.getGamePhase())
     }
     @Test
     fun `determineGameOver finishes when 1 player left`() {
         for (i in 0..<game.players.size-1){
-            game.playerWinOrder.add(game.players[i])
+            game.getPlayerWinOrder().add(game.players[i])
         }
         game.determineGameOver()
-        assertEquals((game.players.size - game.playerWinOrder.size), 1)
-        assertEquals(GamePhase.FINISHED, game.getGamePhaseForTest())
+        assertEquals((game.players.size - game.getPlayerWinOrder().size), 1)
+        assertEquals(GamePhase.FINISHED, game.getGamePhase())
     }
     @Test
     fun `determineGameOver finishes when 0 players left`() {
         for (i in game.players.indices){
-            game.playerWinOrder.add(game.players[i])
+            game.getPlayerWinOrder().add(game.players[i])
         }
         game.determineGameOver()
-        assertEquals((game.players.size - game.playerWinOrder.size), 0)
-        assertEquals(GamePhase.FINISHED, game.getGamePhaseForTest())
+        assertEquals((game.players.size - game.getPlayerWinOrder().size), 0)
+        assertEquals(GamePhase.FINISHED, game.getGamePhase())
     }
     @Test
     fun `determineGameOver doesn't finish when 2 players left`() {
         for (i in 0..<game.players.size-2){
-            game.playerWinOrder.add(game.players[i])
+            game.getPlayerWinOrder().add(game.players[i])
         }
         game.determineGameOver()
-        assertEquals((game.players.size - game.playerWinOrder.size), 2)
-        assertNotEquals(GamePhase.FINISHED, game.getGamePhaseForTest())
+        assertEquals((game.players.size - game.getPlayerWinOrder().size), 2)
+        assertNotEquals(GamePhase.FINISHED, game.getGamePhase())
     }
 }

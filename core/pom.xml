@@ -69,7 +69,11 @@
             <avoidCallsTo>kotlin.jvm.internal</avoidCallsTo>
             <avoidCallsTo>kotlinx.serialization</avoidCallsTo>
           </avoidCallsTo>
-          <!-- Avoid serialization mutations -->
+
+          <!-- Exclude pure value classes -->
+          <excludedClasses>
+            <param>hwr.oop.examples.template.core.GameId</param>
+          </excludedClasses>
 
         </configuration>
         <dependencies>
