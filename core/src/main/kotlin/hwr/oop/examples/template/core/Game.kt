@@ -118,24 +118,6 @@ data class Game(
         gamePhase = GamePhase.ATTACKING
         handlePlayerFinished(defendingPlayer, true)
     }
-//    fun supplyAttack(supplierPlayer: Player, card: Card) {
-//        
-//    }
-//    fun startSupplyRotation(defenderLoses: Boolean) {
-//        supplyRotation = players
-//            .filterIndexed { index, _ -> index != attackerIndex && index != defenderIndex }
-//            .toMutableList()
-//        if (supplyRotation.isNotEmpty()) {
-//            gamePhase = GamePhase.SUPPLYING
-//        } else if (defenderLoses) {
-//            finishBout(false)
-//        } else {
-//            finishBout(true)
-//        }
-//    }
-//    fun supplyPass(){
-//    
-//    }
 
     fun refillHands() {
         val drawOrder = (attackerIndex until players.size) + (0..attackerIndex)

@@ -69,7 +69,6 @@ class AttackTest {
         game.setGamePhase(GamePhase.ATTACKING)
         attacker.clearHand()
 
-        // Attack deck non-empty with QUEEN, defense deck empty — only attackDeck.any fires
         game.bout.addAttackCard(Card(Suit.CLUBS, Rank.QUEEN))
 
         val card = Card(Suit.SPADES, Rank.QUEEN)
@@ -97,7 +96,6 @@ class AttackTest {
         game.setGamePhase(GamePhase.ATTACKING)
         attacker.clearHand()
 
-        // Attack deck has KING, defense deck has QUEEN — card QUEEN matches only defenseDeck.any
         game.bout.addAttackCard(Card(Suit.CLUBS, Rank.KING))
         game.bout.addDefenseCard(Card(Suit.CLUBS, Rank.QUEEN))
 
@@ -109,7 +107,6 @@ class AttackTest {
     }
     @Test
     fun `attack throws when rank absent from both decks and decks non-empty`() {
-        // Isolates defenseDeck.any: both decks non-empty, card rank not in either
         game.setGamePhase(GamePhase.ATTACKING)
         attacker.clearHand()
 

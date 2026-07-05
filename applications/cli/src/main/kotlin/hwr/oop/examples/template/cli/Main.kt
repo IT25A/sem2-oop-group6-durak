@@ -1,7 +1,9 @@
 package hwr.oop.examples.template.cli
 
 import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.context
 import com.github.ajalt.clikt.core.main
+import com.github.ajalt.clikt.core.obj
 import com.github.ajalt.clikt.core.subcommands
 import hwr.oop.examples.template.FileSystemPersistence
 import hwr.oop.examples.template.FileSystemPersistenceConfiguration
@@ -9,9 +11,12 @@ import hwr.oop.examples.template.SqlPersistence
 import hwr.oop.examples.template.config.AppConfig
 import hwr.oop.examples.template.config.ConfigLoader
 import hwr.oop.examples.template.config.PersistenceType
+import hwr.oop.examples.template.ports.out.Persistence
 import okio.Path.Companion.toPath
 
-class ExampleBaseCommand : CliktCommand(name = "example") {
+data class CliContext(val persistence: Persistence, var gameId: String? = null)
+
+class ExampleBaseCommand : CliktCommand(name = "durak") {
 	override fun run() = Unit
 }
 
@@ -19,6 +24,7 @@ fun main(args: Array<String>) {
 	val appConfig = ConfigLoader.load()
 	val persistence = buildPersistence(appConfig)
 	ExampleBaseCommand()
+		.apply { context { obj = CliContext(persistence) } }
 		.subcommands(
 			StartGameCommand(),
 			OnGameIdCommand().subcommands(
@@ -32,19 +38,18 @@ fun main(args: Array<String>) {
 		.main(args)
 }
 
-private fun buildPersistence(appConfig: AppConfig): Any {
+private fun buildPersistence(appConfig: AppConfig): Persistence {
 	return when (appConfig.persistence) {
-		PersistenceType.SQL -> SqlPersistence(
-			appConfig.sql.jdbcUrl,
-			appConfig.sql.username,
-			appConfig.sql.password,
-		)
-		
-		PersistenceType.FILE_SYSTEM -> FileSystemPersistence(
-			configuration = FileSystemPersistenceConfiguration(
-				directory = appConfig.fileSystem.directory.toPath()
-			)
-		)
-	}
-}
+        PersistenceType.SQL -> SqlPersistence(
+            appConfig.sql.jdbcUrl,
+            appConfig.sql.username,
+            appConfig.sql.password,
+        )
 
+        PersistenceType.FILE_SYSTEM -> FileSystemPersistence(
+            configuration = FileSystemPersistenceConfiguration(
+                directory = appConfig.fileSystem.directory.toPath()
+            )
+        )
+    } as Persistence
+}

@@ -33,6 +33,7 @@ class FileSystemPersistence(
 
 	override fun save(game: Game) {
 		val path = directory / "${game.gameId.value}.json"
+		fileSystem.createDirectories(directory)
 		fileSystem.write(path){
 			writeUtf8(json.encodeToString(game))
 		}
