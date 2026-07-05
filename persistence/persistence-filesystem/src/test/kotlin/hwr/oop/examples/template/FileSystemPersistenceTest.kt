@@ -7,6 +7,7 @@ import okio.Path.Companion.toPath
 import okio.fakefilesystem.FakeFileSystem
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
@@ -31,17 +32,22 @@ class FileSystemPersistenceTest {
 	
 	@Test
 	fun `accessing non-existent file throws exception` () {
-		val game = Game(GameId("a"), listOf("a, b"))
+		val game = Game.createRandomGame(
+			playerNames = listOf("a", "b"),
+			gameId = GameId("a")
+		)
 		sut.save(game)
 		assertThrows<FileNotFoundException> {sut.getGame(GameId("b"))  }
 	}
 
 	@Test
 	fun `verify saving and loading a Game returns the same game` (){
-		val game = Game(GameId("a"), listOf("alpha", "beta", "Gamma"))
+		val game = Game.createRandomGame(
+			playerNames = listOf("alpha", "beta", "gamma"),
+			gameId = GameId("a")
+		)
 		sut.save(game)
 		val loadedGame = sut.getGame(game.gameId)
-		assertThat(loadedGame == game)
+		assertEquals(loadedGame, game)
 	}
 }
-

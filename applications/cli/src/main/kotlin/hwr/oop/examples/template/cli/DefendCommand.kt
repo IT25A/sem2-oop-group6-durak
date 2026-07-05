@@ -2,20 +2,23 @@ package hwr.oop.examples.template.cli
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.requireObject
-import com.github.ajalt.clikt.parameters.options.option
-import com.github.ajalt.clikt.parameters.options.required
+import com.github.ajalt.clikt.parameters.arguments.argument
+import hwr.oop.examples.template.core.CardFromStringConverter.asCard
+import hwr.oop.examples.template.core.GameId
 
 class DefendCommand : CliktCommand(name = "defend") {
-	private val gameId by requireObject<String>()
-	private val playerId by option("--player-id", help = "The ID of the defending player.").required()
-	private val attackCard by option(
-		"--attack-card",
-		help = "The attacking card on the table to cover, encoded as a string."
-	).required()
-	private val defenseCard by option(
-		"--defense-card",
-		help = "The card from hand used to cover the attack, encoded as a string."
-	).required()
-	
-	override fun run(): Unit = TODO()
+	private val cliContext by requireObject<CliContext>()
+	private val playerId by argument("PLAYER", help = "Name of the defending player.")
+	private val card by argument("CARD", help = "The card from hand used to cover the attack, e.g. 8H, QD, 10S, AS.")
+
+	override fun run() {
+		val game = cliContext.persistence.getGame(GameId(requireNotNull(cliContext.gameId)))
+		require(game.defendingPlayer.name == playerId) {
+			"It is ${game.defendingPlayer.name}'s turn to attack, not $playerId."
+		}
+		game.defend(card.asCard())
+		cliContext.persistence.save(game)
+		echo("$playerId defended with ${card.uppercase()}.")
+		echo("Phase: ${game.getGamePhase()}  |  Attacker: ${game.attackingPlayer.name}")
+	}
 }

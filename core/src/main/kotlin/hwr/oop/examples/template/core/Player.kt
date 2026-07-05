@@ -2,23 +2,39 @@ package hwr.oop.examples.template.core
 
 import kotlinx.serialization.Serializable
 
-//@Serializable
-class Player(
-    val name: String = "",
-    val hand: MutableList<Card> = mutableListOf()
+@Serializable
+data class Player(
+    val name: String,
+    private val hand: MutableList<Card>
 ) {
-    /**
-     * The player draws a card from the provided Deck
-     * @param deck to draw from
-     * @return _True_ if a card was successfully drawn, else returns _false_
-     */
-    fun draw(deck: Deck) : Boolean {
+    companion object {
+        fun create(name: String): Player {
+            return Player(
+                name = name,
+                hand = mutableListOf()
+            )
+        }
+    }
+    fun getHand() = hand
+    fun addAllToHand(list: List<Card>) {
+        hand.addAll(list)
+    }
+    fun addToHand(card: Card) {
+        hand.add(card)
+    }
+    fun removeFromHand(card: Card) {
+        hand.remove(card)
+    }
+    fun clearHand(){
+        hand.clear()
+    }
+
+    fun draw(deck: Deck) {
         val drawnCard = deck.draw()
         if (drawnCard != null) {
             hand.add(drawnCard)
-            return true
         } else {
-            throw IllegalArgumentException("Drawn card not found")
+            throw EmptyDeckException("Drawn card not found")
         }
     }
 }

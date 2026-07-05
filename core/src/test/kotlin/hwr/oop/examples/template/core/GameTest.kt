@@ -6,35 +6,79 @@ import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class GameTest {
-    val game = Game(GameId("1"), listOf("Alice", "Bob", "Charlie"))
-    val player = game.players[0]
+    private lateinit var game: Game
+    private lateinit var player: Player
+    private lateinit var bout: Bout
+
+    @BeforeEach
+    fun setUp() {
+        game = Game.createRandomGame(
+            playerNames = listOf("Alice", "Bob", "Charlie"),
+            gameId = GameId("1")
+        )
+        player = game.players[0]
+        bout = game.bout
+    }
 
     @Test
+    fun `gameId value returns the constructor string`() {
+        val id = GameId("fixed-id-123")
+        assertEquals("fixed-id-123", id.value)
+    }
+    @Test
+    fun `gameId random() value is non-empty`() {
+        val id = GameId.random()
+        assertTrue(id.value.isNotEmpty())
+    }
+    @Test
     fun `init draws 6 cards to each player`(){
-        assertThat(game.players[0].hand).hasSize(6)
-        assertThat(game.players[1].hand).hasSize(6)
-        assertThat(game.players[2].hand).hasSize(6)
+        assertThat(game.players[0].getHand()).hasSize(6)
+        assertThat(game.players[1].getHand()).hasSize(6)
+        assertThat(game.players[2].getHand()).hasSize(6)
 
         assertThat(game.deck.getCards()).hasSize(36 - 18)
     }
     @Test
-    fun `trump uses override when provided`() {
-        val game = Game(GameId("1"), listOf("Alice", "Bob", "Charlie"), Suit.HEARTS)
-
-        assertEquals(Suit.HEARTS, game.trump)
+    fun `trump is taken from the last card in the deck`() {
+        val deck = Deck.createShuffled()
+        deck.clearDeck()
+        repeat(18) { deck.addCardToDeck(Card(Suit.HEARTS, Rank.SIX)) }
+        deck.addCardToDeck(Card(Suit.CLUBS, Rank.ACE))
+        game = Game.createGameFromDeck(
+            playerNames = listOf("Alice", "Bob", "Charlie"),
+            gameId = GameId("1"),
+            deck = deck
+        )
+        assertEquals(Suit.CLUBS, game.trump)
     }
     @Test
-    fun `trump is taken from deck when no override is provided`() {
-        assertNotNull(game.trump)
-        assertEquals(game.deck.peekTrump().suit, game.trump)
+    fun `createGameFromDeck uses default gameId when not provided`() {
+        val deck = Deck.createShuffled()
+        val createdGame = Game.createGameFromDeck(
+            playerNames = listOf("Alice", "Bob"),
+            deck = deck
+        )
+        assertNotNull(createdGame.gameId)
+        assertTrue(createdGame.gameId.value.isNotEmpty())
+    }
+    @Test
+    fun `createGameFromDeck uses deck trump`() {
+        val deck = Deck.createShuffled()
+        val expectedTrump = deck.peekTrump().suit
+        val createdGame = Game.createGameFromDeck(
+            playerNames = listOf("Alice", "Bob"),
+            deck = deck
+        )
+        assertEquals(expectedTrump, createdGame.trump)
     }
     @Test
     fun `getNextNonEmptyPlayerIndex skips multiple empty hands`(){
-        game.players[0].hand.clear()
-        game.players[1].hand.clear()
+        game.players[0].clearHand()
+        game.players[1].clearHand()
         val nextIndex = game.getNextNonEmptyPlayerIndex(0)
         assertEquals(2, nextIndex)
     }
@@ -61,8 +105,8 @@ class GameTest {
     }
     @Test
     fun `test determineNextTurn throws on invalid player`(){
-        val unknownPlayer = Player("Unknown")
-        val exception = assertThrows(IllegalArgumentException::class.java){
+        val unknownPlayer = Player.create("Unknown")
+        val exception = assertThrows(InvalidPlayerTurnException::class.java){
             game.determineNextTurn(unknownPlayer)
         }
         assertTrue(exception.message!!.contains("invalid"))
@@ -81,68 +125,108 @@ class GameTest {
     }
     @Test
     fun `refillHands succeeds`() {
-        game.players.forEach { it.hand.clear() }
-        repeat(5) { game.players[0].hand.add(Card(Suit.CLUBS, Rank.QUEEN)) }
-        repeat(4) { game.players[1].hand.add(Card(Suit.CLUBS, Rank.QUEEN)) }
-        repeat(3) { game.players[2].hand.add(Card(Suit.CLUBS, Rank.QUEEN)) }
+        game.players.forEach { it.clearHand() }
+        repeat(5) { game.players[0].addToHand(Card(Suit.CLUBS, Rank.QUEEN)) }
+        repeat(4) { game.players[1].addToHand(Card(Suit.CLUBS, Rank.QUEEN)) }
+        repeat(3) { game.players[2].addToHand(Card(Suit.CLUBS, Rank.QUEEN)) }
 
-        game.deck.clearDeckForTest()
-        repeat(4) { game.deck.addCardToDeckForTest(Card(Suit.CLUBS, Rank.ACE)) }
+        game.deck.clearDeck()
+        repeat(4) { game.deck.addCardToDeck(Card(Suit.CLUBS, Rank.ACE)) }
 
         game.refillHands()
 
-        assert(game.players[0].hand.size == 6)
-        assert(game.players[1].hand.size == 6)
-        assert(game.players[2].hand.size == 4)
+        assertThat(game.players[0].getHand()).hasSize(6)
+        assertThat(game.players[1].getHand()).hasSize(6)
+        assertThat(game.players[2].getHand()).hasSize(4)
     }
     @Test
     fun `handlePlayerFinished adds player to win order`() {
-        player.hand.clear()
-        game.deck.clearDeckForTest()
+        player.clearHand()
+        game.deck.clearDeck()
 
         game.handlePlayerFinished(player, false)
-        assertEquals(game.playerWinOrder.size, 1)
+        assertEquals(game.getPlayerWinOrder().size, 1)
+    }
+    @Test
+    fun `handlePlayerFinished sets game to FINISHED when only one player remains`() {
+        game.deck.clearDeck()
+        game.players[0].clearHand()
+        game.players[1].clearHand()
+        game.getPlayerWinOrder().add(game.players[0])
+
+        game.handlePlayerFinished(game.players[1], false)
+
+        assertEquals(GamePhase.FINISHED, game.getGamePhase())
     }
     @Test
     fun `handlePlayerFinished if defending player`() {
-        player.hand.clear()
-        game.deck.clearDeckForTest()
+        player.clearHand()
+        game.deck.clearDeck()
 
         game.handlePlayerFinished(player, true)
-        assertEquals(game.playerWinOrder.size, 1)
+        assertEquals(game.getPlayerWinOrder().size, 1)
     }
     @Test
+    fun `handlePlayerFinished calls pass when defender finishes with undefended attack`() {
+        val defender = game.defendingPlayer
+        game.setGamePhase(GamePhase.DEFENDING)
+        game.bout.addAttackCard(Card(Suit.CLUBS, Rank.SIX))
+        defender.clearHand()
+        game.deck.clearDeck()
+
+        game.handlePlayerFinished(defender, true)
+
+        assertEquals(1, game.getPlayerWinOrder().size)
+        assertTrue(game.bout.getAttackDeck().isEmpty())
+    }
+    @Test
+    fun `finishBout with defenderSucceeded false clears bout after giving cards to defender`() {
+        val attackCard = Card(Suit.CLUBS, Rank.SIX)
+        val defenseCard = Card(Suit.HEARTS, Rank.SEVEN)
+        bout.addAttackCard(attackCard)
+        bout.addDefenseCard(defenseCard)
+        val defender = game.defendingPlayer
+        val handSizeBefore = defender.getHand().size
+
+        game.finishBout(false)
+
+        assertThat(defender.getHand()).hasSize(handSizeBefore + 2)
+        assertThat(bout.getAttackDeck()).isEmpty()
+        assertThat(bout.getDefenseDeck()).isEmpty()
+    }
+
+    @Test
     fun `determineGameOver changes gamePhase to FINISHED`(){
-        game.playerWinOrder.add(game.players[0])
-        game.playerWinOrder.add(game.players[1])
+        game.getPlayerWinOrder().add(game.players[0])
+        game.getPlayerWinOrder().add(game.players[1])
         game.determineGameOver()
-        assertEquals(GamePhase.FINISHED, game.getGamePhaseForTest())
+        assertEquals(GamePhase.FINISHED, game.getGamePhase())
     }
     @Test
     fun `determineGameOver finishes when 1 player left`() {
         for (i in 0..<game.players.size-1){
-            game.playerWinOrder.add(game.players[i])
+            game.getPlayerWinOrder().add(game.players[i])
         }
         game.determineGameOver()
-        assertThat(game.players.size - game.playerWinOrder.size == 1)
-        assertEquals(GamePhase.FINISHED, game.getGamePhaseForTest())
+        assertEquals((game.players.size - game.getPlayerWinOrder().size), 1)
+        assertEquals(GamePhase.FINISHED, game.getGamePhase())
     }
     @Test
     fun `determineGameOver finishes when 0 players left`() {
         for (i in game.players.indices){
-            game.playerWinOrder.add(game.players[i])
+            game.getPlayerWinOrder().add(game.players[i])
         }
         game.determineGameOver()
-        assertThat(game.players.size - game.playerWinOrder.size == 0)
-        assertEquals(GamePhase.FINISHED, game.getGamePhaseForTest())
+        assertEquals((game.players.size - game.getPlayerWinOrder().size), 0)
+        assertEquals(GamePhase.FINISHED, game.getGamePhase())
     }
     @Test
     fun `determineGameOver doesn't finish when 2 players left`() {
         for (i in 0..<game.players.size-2){
-            game.playerWinOrder.add(game.players[i])
+            game.getPlayerWinOrder().add(game.players[i])
         }
         game.determineGameOver()
-        assertThat(game.players.size - game.playerWinOrder.size == 2)
-        assertNotEquals(GamePhase.FINISHED, game.getGamePhaseForTest())
+        assertEquals((game.players.size - game.getPlayerWinOrder().size), 2)
+        assertNotEquals(GamePhase.FINISHED, game.getGamePhase())
     }
 }
