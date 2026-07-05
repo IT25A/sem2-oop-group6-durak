@@ -63,18 +63,12 @@
           <targetTests>
             <param>hwr.oop.*</param>
           </targetTests>
-
-          <!-- Avoid serialization mutations -->
-          <avoidCallsTo>
-            <avoidCallsTo>kotlin.jvm.internal</avoidCallsTo>
-            <avoidCallsTo>kotlinx.serialization</avoidCallsTo>
-          </avoidCallsTo>
-
-          <!-- Exclude pure value classes -->
           <excludedClasses>
-            <param>hwr.oop.examples.template.core.GameId</param>
+            <param>**$$serializer</param>
           </excludedClasses>
-
+          <excludedMethods>
+            <param>write$Self</param>
+          </excludedMethods>
         </configuration>
         <dependencies>
           <dependency>
