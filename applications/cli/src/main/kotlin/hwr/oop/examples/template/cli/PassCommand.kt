@@ -11,7 +11,7 @@ class PassCommand : CliktCommand(name = "pass") {
 	private val playerId by argument("PLAYER", help = "Name of the passing player.")
 
 	override fun run() {
-		val game = cliContext.persistence.getGame(GameId(requireNotNull(cliContext.gameId)))
+		val game = cliContext.persistence.loadById(GameId(requireNotNull(cliContext.gameId)))
 		val validPlayer = when (game.getGamePhase()) {
 			GamePhase.DEFENDING -> game.defendingPlayer
 			GamePhase.ATTACKING -> game.attackingPlayer
@@ -22,7 +22,6 @@ class PassCommand : CliktCommand(name = "pass") {
 		}
 		game.pass()
 		cliContext.persistence.save(game)
-		echo("$playerId passed.")
-		echo("Phase: ${game.getGamePhase()}  |  Attacker: ${game.attackingPlayer.name}  |  Defender: ${game.defendingPlayer.name}")
+		printGameState(game)
 	}
 }

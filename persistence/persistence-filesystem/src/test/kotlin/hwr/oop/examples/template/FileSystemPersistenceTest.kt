@@ -37,7 +37,7 @@ class FileSystemPersistenceTest {
 			gameId = GameId("a")
 		)
 		sut.save(game)
-		assertThrows<FileNotFoundException> {sut.getGame(GameId("b"))  }
+		assertThrows<FileNotFoundException> { sut.loadById(GameId("b")) }
 	}
 
 	@Test
@@ -47,7 +47,7 @@ class FileSystemPersistenceTest {
 			gameId = GameId("a")
 		)
 		sut.save(game)
-		val loadedGame = sut.getGame(game.gameId)
+		val loadedGame = sut.loadById(game.gameId)
 		assertEquals(loadedGame, game)
 	}
 }

@@ -2,7 +2,7 @@ package hwr.oop.examples.template
 
 import hwr.oop.examples.template.core.Game
 import hwr.oop.examples.template.core.GameId
-import hwr.oop.examples.template.ports.out.Persistence
+import hwr.oop.examples.template.ports.out.GameRepository
 import okio.FileNotFoundException
 import okio.FileSystem
 import kotlinx.serialization.json.Json
@@ -15,10 +15,10 @@ private val json = Json {
 class FileSystemPersistence(
 	configuration: FileSystemPersistenceConfiguration,
 	private val fileSystem: FileSystem = FileSystem.SYSTEM,
-) : Persistence {
+) : GameRepository {
 
 	private val directory = configuration.directory
-	override fun getGame(id: GameId): Game {
+	override fun loadById(id: GameId): Game {
 		val path = directory / "${id.value}.json"
 		val readString = try {
 			fileSystem.read(path) {
@@ -29,7 +29,6 @@ class FileSystemPersistence(
 		}
 		return json.decodeFromString<Game>(readString)
 	}
-
 
 	override fun save(game: Game) {
 		val path = directory / "${game.gameId.value}.json"

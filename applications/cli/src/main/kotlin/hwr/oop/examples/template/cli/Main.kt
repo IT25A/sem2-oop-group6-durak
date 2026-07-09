@@ -11,12 +11,12 @@ import hwr.oop.examples.template.SqlPersistence
 import hwr.oop.examples.template.config.AppConfig
 import hwr.oop.examples.template.config.ConfigLoader
 import hwr.oop.examples.template.config.PersistenceType
-import hwr.oop.examples.template.ports.out.Persistence
+import hwr.oop.examples.template.ports.out.GameRepository
 import okio.Path.Companion.toPath
 
-data class CliContext(val persistence: Persistence, var gameId: String? = null)
+data class CliContext(val persistence: GameRepository, var gameId: String? = null)
 
-class ExampleBaseCommand : CliktCommand(name = "durak") {
+class ExampleBaseCommand : CliktCommand(name = "example") {
 	override fun run() = Unit
 }
 
@@ -38,7 +38,7 @@ fun main(args: Array<String>) {
 		.main(args)
 }
 
-private fun buildPersistence(appConfig: AppConfig): Persistence {
+private fun buildPersistence(appConfig: AppConfig): GameRepository {
 	return when (appConfig.persistence) {
         PersistenceType.SQL -> SqlPersistence(
             appConfig.sql.jdbcUrl,
@@ -51,5 +51,5 @@ private fun buildPersistence(appConfig: AppConfig): Persistence {
                 directory = appConfig.fileSystem.directory.toPath()
             )
         )
-    } as Persistence
+    }
 }

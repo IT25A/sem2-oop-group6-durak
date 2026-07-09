@@ -76,6 +76,52 @@ class GameTest {
         assertEquals(expectedTrump, createdGame.trump)
     }
     @Test
+    fun `player with lowest trump card is first attacker`() {
+        val deck = Deck.createShuffled()
+        deck.clearDeck()
+        listOf(
+            Card(Suit.CLUBS, Rank.SIX),
+            Card(Suit.CLUBS, Rank.SEVEN),
+            Card(Suit.CLUBS, Rank.EIGHT),
+            Card(Suit.CLUBS, Rank.NINE),
+            Card(Suit.CLUBS, Rank.TEN),
+            Card(Suit.HEARTS, Rank.SIX),   // Alice's lowest trump
+            Card(Suit.SPADES, Rank.SIX),
+            Card(Suit.SPADES, Rank.SEVEN),
+            Card(Suit.SPADES, Rank.EIGHT),
+            Card(Suit.SPADES, Rank.NINE),
+            Card(Suit.SPADES, Rank.TEN),
+            Card(Suit.HEARTS, Rank.ACE),   // Bob's higher trump
+            Card(Suit.HEARTS, Rank.KING),  // trump card at bottom
+        ).forEach { deck.addCardToDeck(it) }
+        val createdGame = Game.createGameFromDeck(playerNames = listOf("Alice", "Bob"), deck = deck)
+        assertEquals("Alice", createdGame.attackingPlayer.name)
+        assertEquals("Bob", createdGame.defendingPlayer.name)
+    }
+    @Test
+    fun `player with no trump card does not become first attacker when another has trump`() {
+        val deck = Deck.createShuffled()
+        deck.clearDeck()
+        listOf(
+            Card(Suit.CLUBS, Rank.SIX),
+            Card(Suit.CLUBS, Rank.SEVEN),
+            Card(Suit.CLUBS, Rank.EIGHT),
+            Card(Suit.CLUBS, Rank.NINE),
+            Card(Suit.CLUBS, Rank.TEN),
+            Card(Suit.CLUBS, Rank.JACK),   // Alice: no trump
+            Card(Suit.SPADES, Rank.SIX),
+            Card(Suit.SPADES, Rank.SEVEN),
+            Card(Suit.SPADES, Rank.EIGHT),
+            Card(Suit.SPADES, Rank.NINE),
+            Card(Suit.SPADES, Rank.TEN),
+            Card(Suit.HEARTS, Rank.SIX),   // Bob's only trump
+            Card(Suit.HEARTS, Rank.KING),  // trump card at bottom
+        ).forEach { deck.addCardToDeck(it) }
+        val createdGame = Game.createGameFromDeck(playerNames = listOf("Alice", "Bob"), deck = deck)
+        assertEquals("Bob", createdGame.attackingPlayer.name)
+        assertEquals("Alice", createdGame.defendingPlayer.name)
+    }
+    @Test
     fun `getNextNonEmptyPlayerIndex skips multiple empty hands`(){
         game.players[0].clearHand()
         game.players[1].clearHand()
@@ -113,31 +159,39 @@ class GameTest {
     }
     @Test
     fun `determineNextTurn with attacker as passingPlayer skips losing attacker`(){
+        val defenderBefore = game.defendingPlayer
+        val defenderIndex = game.players.indexOf(defenderBefore)
         game.determineNextTurn(game.attackingPlayer)
-        assertEquals(game.players[1], game.attackingPlayer)
-        assertEquals(game.players[2], game.defendingPlayer)
+        assertEquals(defenderBefore, game.attackingPlayer)
+        assertEquals(game.players[(defenderIndex + 1) % game.players.size], game.defendingPlayer)
     }
     @Test
     fun `determineNextTurn with defender as passingPlayer skips losing defender`(){
+        val defenderIndex = game.players.indexOf(game.defendingPlayer)
+        val expectedNextAttacker = game.players[(defenderIndex + 1) % game.players.size]
         game.determineNextTurn(game.defendingPlayer)
-        assertEquals(game.players[2], game.attackingPlayer)
-        assertEquals(game.players[0], game.defendingPlayer)
+        assertEquals(expectedNextAttacker, game.attackingPlayer)
+        assertEquals(game.players[(game.players.indexOf(expectedNextAttacker) + 1) % game.players.size], game.defendingPlayer)
     }
     @Test
     fun `refillHands succeeds`() {
+        val ai = game.players.indexOf(game.attackingPlayer)
+        val p0 = game.players[ai % 3]
+        val p1 = game.players[(ai + 1) % 3]
+        val p2 = game.players[(ai + 2) % 3]
         game.players.forEach { it.clearHand() }
-        repeat(5) { game.players[0].addToHand(Card(Suit.CLUBS, Rank.QUEEN)) }
-        repeat(4) { game.players[1].addToHand(Card(Suit.CLUBS, Rank.QUEEN)) }
-        repeat(3) { game.players[2].addToHand(Card(Suit.CLUBS, Rank.QUEEN)) }
+        repeat(5) { p0.addToHand(Card(Suit.CLUBS, Rank.QUEEN)) }
+        repeat(4) { p1.addToHand(Card(Suit.CLUBS, Rank.QUEEN)) }
+        repeat(3) { p2.addToHand(Card(Suit.CLUBS, Rank.QUEEN)) }
 
         game.deck.clearDeck()
         repeat(4) { game.deck.addCardToDeck(Card(Suit.CLUBS, Rank.ACE)) }
 
         game.refillHands()
 
-        assertThat(game.players[0].getHand()).hasSize(6)
-        assertThat(game.players[1].getHand()).hasSize(6)
-        assertThat(game.players[2].getHand()).hasSize(4)
+        assertThat(p0.getHand()).hasSize(6)
+        assertThat(p1.getHand()).hasSize(6)
+        assertThat(p2.getHand()).hasSize(4)
     }
     @Test
     fun `handlePlayerFinished adds player to win order`() {
@@ -228,5 +282,45 @@ class GameTest {
         game.determineGameOver()
         assertEquals((game.players.size - game.getPlayerWinOrder().size), 2)
         assertNotEquals(GamePhase.FINISHED, game.getGamePhase())
+    }
+    @Test
+    fun `games with different attackerIndex are not equal`() {
+        val deck = Deck.createShuffled()
+        val game1 = Game.createGameFromDeck(playerNames = listOf("Alice", "Bob", "Charlie"), deck = deck)
+        val deck2 = Deck.createShuffled()
+        val game2 = Game.createGameFromDeck(playerNames = listOf("Alice", "Bob", "Charlie"), deck = deck2)
+        game2.determineNextTurn(game2.attackingPlayer)
+        assertNotEquals(game1, game2)
+    }
+    @Test
+    fun `game is not equal to null`() {
+        assertNotEquals(game, null)
+    }
+    @Test
+    fun `game is equal to itself`() {
+        assertEquals(game, game)
+    }
+    @Test
+    fun `player with strictly lower trump rank is chosen over player with adjacent higher rank`() {
+        val deck = Deck.createShuffled()
+        deck.clearDeck()
+        listOf(
+            Card(Suit.CLUBS, Rank.SIX),
+            Card(Suit.CLUBS, Rank.SEVEN),
+            Card(Suit.CLUBS, Rank.EIGHT),
+            Card(Suit.CLUBS, Rank.NINE),
+            Card(Suit.CLUBS, Rank.TEN),
+            Card(Suit.HEARTS, Rank.SEVEN),  // Alice: trump rank 7
+            Card(Suit.SPADES, Rank.SIX),
+            Card(Suit.SPADES, Rank.SEVEN),
+            Card(Suit.SPADES, Rank.EIGHT),
+            Card(Suit.SPADES, Rank.NINE),
+            Card(Suit.SPADES, Rank.TEN),
+            Card(Suit.HEARTS, Rank.SIX),    // Bob: trump rank 6 (strictly lower)
+            Card(Suit.HEARTS, Rank.KING),
+        ).forEach { deck.addCardToDeck(it) }
+        val createdGame = Game.createGameFromDeck(playerNames = listOf("Alice", "Bob"), deck = deck)
+        assertEquals("Bob", createdGame.attackingPlayer.name)
+        assertEquals("Alice", createdGame.defendingPlayer.name)
     }
 }

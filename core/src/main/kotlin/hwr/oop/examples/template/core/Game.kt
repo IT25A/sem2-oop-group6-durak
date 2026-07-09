@@ -50,12 +50,20 @@ data class Game(
                 }
             }
 
+            val attackerIndex = players.indices
+                .mapNotNull { i -> players[i].getHand().filter { it.suit == trump }.minByOrNull { it.rank.rankValue }?.let { i to it } }
+                .minByOrNull { (_, card) -> card.rank.rankValue }
+                ?.first ?: 0
+            val defenderIndex = (attackerIndex + 1) % players.size
+
             return Game(
                 gameId = gameId,
                 deck = deck,
                 trump = trump,
                 bout = bout,
-                players = players
+                players = players,
+                attackerIndex = attackerIndex,
+                defenderIndex = defenderIndex
             )
         }
     }

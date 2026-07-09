@@ -18,31 +18,37 @@ class PassTest {
 
     @Test
     fun `pass next attacker is defender when defender takes cards`(){
+        val defenderIndex = game.players.indexOf(game.defendingPlayer)
+        val expectedNextAttacker = game.players[(defenderIndex + 1) % game.players.size]
         game.setGamePhase(GamePhase.DEFENDING)
         game.bout.addAttackCard(Card(Suit.CLUBS, Rank.QUEEN))
         game.bout.clearDefenseDeck()
 
         game.pass()
-        assertEquals(game.players[2], game.attackingPlayer)
+        assertEquals(expectedNextAttacker, game.attackingPlayer)
     }
     @Test
     fun `pass next attacker is defender`(){
+        val defenderBefore = game.defendingPlayer
         game.setGamePhase(GamePhase.DEFENDING)
         game.bout.addAttackCard(Card(Suit.CLUBS, Rank.QUEEN))
         game.bout.addDefenseCard(Card(Suit.CLUBS, Rank.QUEEN))
 
         game.pass()
-        assertEquals(game.players[1], game.attackingPlayer)
+        assertEquals(defenderBefore, game.attackingPlayer)
     }
     @Test
     fun `defenderTakesCards is true when phase is DEFENDING and bout is NOT defended`(){
+        val defenderIndex = game.players.indexOf(game.defendingPlayer)
+        val expectedNextAttacker = game.players[(defenderIndex + 1) % game.players.size]
+        val expectedNextDefender = game.players[(game.players.indexOf(expectedNextAttacker) + 1) % game.players.size]
         game.setGamePhase(GamePhase.DEFENDING)
         game.bout.addAttackCard(Card(Suit.CLUBS, Rank.QUEEN))
         game.bout.clearDefenseDeck()
 
         game.pass()
-        assertEquals(game.players[2], game.attackingPlayer)
-        assertEquals(game.players[0], game.defendingPlayer)
+        assertEquals(expectedNextAttacker, game.attackingPlayer)
+        assertEquals(expectedNextDefender, game.defendingPlayer)
     }
     @Test
     fun `defenderTakesCards to false when phase is DEFENDING and bout IS defended`() {

@@ -1,5 +1,6 @@
 package hwr.oop.examples.template.core
 
+import hwr.oop.examples.template.core.CardFromStringConverter.asCard
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -56,5 +57,45 @@ class CardTest {
 
         val suits = cards.map { it.suit }
         assertThat(suits).containsExactlyInAnyOrderElementsOf(allSuits)
+    }
+
+    @ParameterizedTest
+    @EnumSource(Rank::class)
+    fun `toShortString rank part is correct`(rank: Rank) {
+        val card = Card(Suit.CLUBS, rank)
+        val expected = when (rank) {
+            Rank.SIX   -> "6C"
+            Rank.SEVEN -> "7C"
+            Rank.EIGHT -> "8C"
+            Rank.NINE  -> "9C"
+            Rank.TEN   -> "10C"
+            Rank.JACK  -> "JC"
+            Rank.QUEEN -> "QC"
+            Rank.KING  -> "KC"
+            Rank.ACE   -> "AC"
+        }
+        assertThat(card.toShortString()).isEqualTo(expected)
+    }
+
+    @ParameterizedTest
+    @EnumSource(Suit::class)
+    fun `toShortString suit part is correct`(suit: Suit) {
+        val card = Card(suit, Rank.ACE)
+        val expected = when (suit) {
+            Suit.CLUBS    -> "AC"
+            Suit.DIAMONDS -> "AD"
+            Suit.HEARTS   -> "AH"
+            Suit.SPADES   -> "AS"
+        }
+        assertThat(card.toShortString()).isEqualTo(expected)
+    }
+
+    @ParameterizedTest
+    @EnumSource(Rank::class)
+    fun `toShortString round-trips through CardFromStringConverter`(rank: Rank) {
+        Suit.entries.forEach { suit ->
+            val card = Card(suit, rank)
+            assertThat(card.toShortString().asCard()).isEqualTo(card)
+        }
     }
 }

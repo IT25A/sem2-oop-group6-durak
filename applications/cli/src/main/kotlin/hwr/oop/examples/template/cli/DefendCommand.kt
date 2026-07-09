@@ -12,13 +12,12 @@ class DefendCommand : CliktCommand(name = "defend") {
 	private val card by argument("CARD", help = "The card from hand used to cover the attack, e.g. 8H, QD, 10S, AS.")
 
 	override fun run() {
-		val game = cliContext.persistence.getGame(GameId(requireNotNull(cliContext.gameId)))
+		val game = cliContext.persistence.loadById(GameId(requireNotNull(cliContext.gameId)))
 		require(game.defendingPlayer.name == playerId) {
 			"It is ${game.defendingPlayer.name}'s turn to attack, not $playerId."
 		}
 		game.defend(card.asCard())
 		cliContext.persistence.save(game)
-		echo("$playerId defended with ${card.uppercase()}.")
-		echo("Phase: ${game.getGamePhase()}  |  Attacker: ${game.attackingPlayer.name}")
+		printGameState(game)
 	}
 }

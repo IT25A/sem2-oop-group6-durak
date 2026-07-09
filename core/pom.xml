@@ -63,11 +63,13 @@
           <targetTests>
             <param>hwr.oop.*</param>
           </targetTests>
-          <excludedClasses>
-            <param>**$$serializer</param>
-          </excludedClasses>
+          <avoidCallsTo>
+            <avoidCallsTo>kotlin.jvm.internal</avoidCallsTo>
+            <avoidCallsTo>kotlinx.serialization</avoidCallsTo>
+          </avoidCallsTo>
           <excludedMethods>
             <param>write$Self</param>
+            <param>getValue</param>
           </excludedMethods>
         </configuration>
         <dependencies>
