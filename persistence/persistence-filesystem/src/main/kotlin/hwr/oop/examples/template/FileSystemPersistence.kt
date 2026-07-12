@@ -24,7 +24,7 @@ class FileSystemPersistence(
 			fileSystem.read(path) {
 				readUtf8()
 			}
-		} catch (e: FileNotFoundException) {
+		} catch (_: FileNotFoundException) {
 			throw FileNotFoundException("File not found: $path")
 		}
 		return json.decodeFromString<Game>(readString)

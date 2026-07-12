@@ -11,7 +11,6 @@ data class Game(
     val players: List<Player>,
     private var attackerIndex: Int = 0,
     private var defenderIndex: Int = 1,
-    private var supplyRotation: MutableList<Player> = mutableListOf(),
     private var gamePhase: GamePhase = GamePhase.ATTACKING,
     private val playerWinOrder: MutableList<Player> = mutableListOf()
 ) {

@@ -90,5 +90,6 @@ class Controller(
 		supplyRequest: @Valid SupplyRequest?,
 	): ResponseEntity<GameState> {
 		TODO("Not yet implemented")
+		/*Konnten wir nicht rausnehmen, weil sonst der Controller nicht mehr funktioniert*/
 	}
 }

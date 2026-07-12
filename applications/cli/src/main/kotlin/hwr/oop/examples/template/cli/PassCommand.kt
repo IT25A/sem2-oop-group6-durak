@@ -11,7 +11,8 @@ class PassCommand : CliktCommand(name = "pass") {
 	private val playerId by argument("PLAYER", help = "Name of the passing player.")
 
 	override fun run() {
-		val game = cliContext.persistence.loadById(GameId(requireNotNull(cliContext.gameId)))
+		val id = GameId(requireNotNull(cliContext.gameId))
+		val game = cliContext.loadGameByIdQuery.load(id)
 		val validPlayer = when (game.getGamePhase()) {
 			GamePhase.DEFENDING -> game.defendingPlayer
 			GamePhase.ATTACKING -> game.attackingPlayer
@@ -20,8 +21,7 @@ class PassCommand : CliktCommand(name = "pass") {
 		require(validPlayer?.name == playerId) {
 			"$playerId cannot pass right now. Expected: ${validPlayer?.name ?: "nobody (game is finished)"}."
 		}
-		game.pass()
-		cliContext.persistence.save(game)
-		printGameState(game)
+		val updated = cliContext.playCardUseCase.pass(id)
+		printGameState(updated)
 	}
 }

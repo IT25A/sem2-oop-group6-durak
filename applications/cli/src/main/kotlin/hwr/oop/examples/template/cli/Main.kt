@@ -11,10 +11,18 @@ import hwr.oop.examples.template.SqlPersistence
 import hwr.oop.examples.template.config.AppConfig
 import hwr.oop.examples.template.config.ConfigLoader
 import hwr.oop.examples.template.config.PersistenceType
+import hwr.oop.examples.template.adapters.`in`.LoadGameByIdQuery
+import hwr.oop.examples.template.adapters.`in`.NewGameUseCase
+import hwr.oop.examples.template.adapters.`in`.PlayCardUseCase
 import hwr.oop.examples.template.ports.out.GameRepository
 import okio.Path.Companion.toPath
 
-data class CliContext(val persistence: GameRepository, var gameId: String? = null)
+data class CliContext(
+    val newGameUseCase: NewGameUseCase,
+    val playCardUseCase: PlayCardUseCase,
+    val loadGameByIdQuery: LoadGameByIdQuery,
+    var gameId: String? = null,
+)
 
 class ExampleBaseCommand : CliktCommand(name = "example") {
 	override fun run() = Unit
@@ -23,15 +31,19 @@ class ExampleBaseCommand : CliktCommand(name = "example") {
 fun main(args: Array<String>) {
 	val appConfig = ConfigLoader.load()
 	val persistence = buildPersistence(appConfig)
+	val cliContext = CliContext(
+		newGameUseCase = NewGameUseCase(persistence),
+		playCardUseCase = PlayCardUseCase(persistence, persistence),
+		loadGameByIdQuery = LoadGameByIdQuery(persistence),
+	)
 	ExampleBaseCommand()
-		.apply { context { obj = CliContext(persistence) } }
+		.apply { context { obj = cliContext } }
 		.subcommands(
 			StartGameCommand(),
 			OnGameIdCommand().subcommands(
 				GetGameCommand(),
 				AttackCommand(),
 				DefendCommand(),
-				SupplyCommand(),
 				PassCommand(),
 			),
 		)

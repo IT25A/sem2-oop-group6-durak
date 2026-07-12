@@ -8,7 +8,7 @@ class GetGameCommand : CliktCommand(name = "getGame") {
 	private val cliContext by requireObject<CliContext>()
 
 	override fun run() {
-		val game = cliContext.persistence.loadById(GameId(requireNotNull(cliContext.gameId)))
+		val game = cliContext.loadGameByIdQuery.load(GameId(requireNotNull(cliContext.gameId)))
 		printGameState(game)
 	}
 }
